@@ -817,7 +817,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                  
         result_global = best_result
         
-        lmfit.report_fit(result_global)    
+        #lmfit.report_fit(result_global)    
         # Use the results from basin hopping as initial parameters for leastsq
         params.update(result_global.params)
     
@@ -829,7 +829,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
 
     #write error report (optional, un comment for print to console)
-    
+    global fit_summary
     fit_summary=lmfit.fit_report(result)
 
     global bic
@@ -1477,7 +1477,7 @@ def param_preview(x_data,y_data,parvals,header):
         ax_fit.plot(x_model,fit12, 'g')
         ax_fit.plot(x_model,fit13, 'g', label='Broken Power Law',linestyle='dotted')
         ax_fit.plot(x_model,fit14, 'g')
-        ax_fit.scatter(x1_tpl,test_func(int(x_tpl1),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1_tpl,test_func(int(x1_tpl),parvals,header),zorder=100000,c='black')
         ax_fit.scatter(x2_tpl,test_func(int(x2_tpl),parvals,header),zorder=100000,c='black')
       
         
@@ -3784,7 +3784,27 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init_B5_5pl_entry.delete(0, tk.END)
             init_B5_5pl_entry.insert(0,parvals_ld["B5_5pl"])  
                    
+    def fit_sum_hndl():
+        try:
+            fit_summary
+            
+        except NameError:tk.messagebox.showwarning("No Results", "No uncertainties and statistics yet, run a fit first")
 
+        
+        else:
+            summ_window=tk.Tk()
+            summ_window.title("Parameter Uncertainty Summary")
+            summary_text=tk.Message(summ_window, text=fit_summary)
+            summary_text.pack(padx=10, pady=10)
+            
+            tk.Label(summ_window, text="Absolute Uncertainties").pack()
+            uncerts_text=tk.Message(summ_window, text=param_uncert_calced)
+            uncerts_text.pack(padx=10, pady=10)
+            
+            
+
+            
+            summ_window.mainloop()
     
     def on_selection(event):
         selection = combo.get()
@@ -3793,10 +3813,11 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                         "Close (and proceed to next interval if set)":close_btn_hndl,
                         "Save Spectrum":spec_save_hndl,
                         "Preview Parameters":preview_btn_hndl,
-                        "Perform Fit":fit_btn_hndl}
+                        "Perform Fit":fit_btn_hndl,
+                        "Summary of fit statistics and uncerainties":fit_sum_hndl}
         option_handlers[selection]()
         
-    fit_window_options=["Load Parameters","Save Parameters","Close (and proceed to next interval if set)","Save Spectrum","Preview Parameters","Perform Fit"]
+    fit_window_options=["Load Parameters","Save Parameters","Close (and proceed to next interval if set)","Save Spectrum","Preview Parameters","Perform Fit","Summary of fit statistics and uncerainties"]
     combo=ttk.Combobox(window_buttons, values=fit_window_options)
     combo.bind('<<ComboboxSelected>>', on_selection)
     combo.pack()

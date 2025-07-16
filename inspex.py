@@ -829,8 +829,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
 
     #write error report (optional, un comment for print to console)
-    lmfit.report_fit(result)
     
+    fit_summary=lmfit.fit_report(result)
 
     global bic
     bic=result.bic
@@ -3848,6 +3848,13 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
     )
     load_button.pack(side=tk.BOTTOM)
     
+    def on_selection(event):
+        selection = combo.get()
+        print(f"You selected: {selection}")
+    fit_window_options=["Load Parameters","Save Parameters","Close (and proceed to next interval if set)","Save Spectrum","Preview Parameters","Perform Fit"]
+    combo=ttk.Combobox(window_buttons, values=fit_window_options)
+    combo.bind('<<ComboboxSelected>>', on_selection)
+    combo.pack()
     
     window_buttons.mainloop()#this creates the gui window as defined above
 

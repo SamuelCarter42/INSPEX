@@ -3178,17 +3178,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                tk.messagebox.showerror("Invalid Input","Inputs should be floating point intergers")
                print(e)
        
-    #create fit button using above fit button handler
-    fit_button=tk.Button(
-    master=window_buttons,
-    text="Perform Fit",
-    width=25,
-    height=5,
-    bg="white",
-    fg="black",
-    command=fit_btn_hndl
-    )
-    fit_button.pack(side=tk.BOTTOM)
+
 #%%preview buttns handling   
 
     def preview_btn_hndl():#function to handle preview button
@@ -3578,17 +3568,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                tk.messagebox.showerror("Invalid Input","inputs should be floating point intergers preview")
         param_preview(x_data,y_data,init,header)#calls previously defined save function
     
-    #create preview button
-    preview_button=tk.Button(
-    master=window_buttons,
-    text="Preview Parameters",
-    width=25,
-    height=2,
-    bg="white",
-    fg="black",
-    command=preview_btn_hndl
-    )
-    preview_button.pack(side=tk.BOTTOM)    
+
     
     
     #option to save the spectrum
@@ -3601,17 +3581,6 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
         file_obj=tk.filedialog.asksaveasfile(filetypes = files, defaultextension=".txt")
         spec_frame.to_csv(file_obj)
 
-    #create save button
-    spec_save_button=tk.Button(
-    master=window_buttons,
-    text="Save Spectrum",
-    width=25,
-    height=2,
-    bg="white",
-    fg="black",
-    command=spec_save_hndl
-    )
-    spec_save_button.pack(side=tk.BOTTOM)
     
     
     def close_btn_hndl():
@@ -3621,35 +3590,14 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             fit_window.destroy()
             fit_window=None
     
-    #create close button
-    close_button=tk.Button(
-    master=window_buttons,
-    text="Close (and proceed to next interval if set)",
-    width=30,
-    height=2,
-    bg="white",
-    fg="black",
-    command=close_btn_hndl
-    )
-    close_button.pack(side=tk.BOTTOM) 
+
 
 
 #%%load savehandling
     def save_btn_hndl():#function to handle save button
         param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres, power_pres, kappa_pres,bpl_and_therm_pres, double_therm_func_pres, tpl_pres, qpl_pres,quint_pl_pres,redchi)#calls previously defined save function
     
-    #create save button
-    save_button=tk.Button(
-    master=window_buttons,
-    text="Save Parameters",
-    width=25,
-    height=2,
-    bg="white",
-    fg="black",
-    command=save_btn_hndl
-    )
-    save_button.pack(side=tk.BOTTOM)
-    
+
     def load_btn_hndl():#function to handle load button
         global header
         header,parvals_ld=param_load(date,inst,spec_type)
@@ -3836,21 +3784,18 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init_B5_5pl_entry.delete(0, tk.END)
             init_B5_5pl_entry.insert(0,parvals_ld["B5_5pl"])  
                    
-    #create load button
-    load_button=tk.Button(
-    master=window_buttons,
-    text="Load Parameters",
-    width=25,
-    height=5,
-    bg="white",
-    fg="black",
-    command=load_btn_hndl
-    )
-    load_button.pack(side=tk.BOTTOM)
+
     
     def on_selection(event):
         selection = combo.get()
-        print(f"You selected: {selection}")
+        option_handlers={"Load Parameters":load_btn_hndl,
+                        "Save Parameters":save_btn_hndl,
+                        "Close (and proceed to next interval if set)":close_btn_hndl,
+                        "Save Spectrum":spec_save_hndl,
+                        "Preview Parameters":preview_btn_hndl,
+                        "Perform Fit":fit_btn_hndl}
+        option_handlers[selection]()
+        
     fit_window_options=["Load Parameters","Save Parameters","Close (and proceed to next interval if set)","Save Spectrum","Preview Parameters","Perform Fit"]
     combo=ttk.Combobox(window_buttons, values=fit_window_options)
     combo.bind('<<ComboboxSelected>>', on_selection)

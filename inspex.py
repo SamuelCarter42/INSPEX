@@ -548,7 +548,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     plot_wind_size=(4,3.5)#define the window size for the plots
     
-    fit_window=tk.Tk()
+    fit_window=tk.Toplevel()
     fit_window.title('Fit window')
     
     
@@ -1184,7 +1184,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     #second plot showing the residuals of the fit
     
-    resid_window=tk.Tk()
+    resid_window=tk.Toplevel()
     fig_resids =plt.Figure(figsize=plot_wind_size, dpi=300)
     ax_resids= fig_resids.add_subplot(1, 1, 1)
 
@@ -1443,7 +1443,7 @@ def param_preview(x_data,y_data,parvals,header):
     plot_wind_size=(4,3.5)#define the window size for the plots
     
     global preview_window
-    preview_window=tk.Tk()
+    preview_window=tk.Toplevel()
     preview_window.title('Preview window')
     fig_fit =plt.Figure(figsize=plot_wind_size, dpi=300)
     ax_fit= fig_fit.add_subplot(1, 1, 1)
@@ -1728,7 +1728,7 @@ def param_load(date,inst,spec_type): #function to load data from the file
 
 
 def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
-    window_buttons = tk.Toplevel(fit_window)#define window. everything between here and "mainloop" makes up this window". MUST only have one tk.Tk(), all esle must be .toplevel else crashes
+    window_buttons = tk.Toplevel()#define window. everything between here and "mainloop" makes up this window". MUST only have one tk.Tk(), all esle must be .toplevel else crashes
     window_buttons.minsize(500, 600)
     window_buttons.title("Inspex fitting GUI")
 
@@ -3823,7 +3823,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 
         
         else:
-            summ_window=tk.Tk()
+            summ_window=tk.Toplevel()
             summ_window.title("Parameter Uncertainty Summary")
             summary_text=tk.Message(summ_window, text=fit_summary)
             summary_text.pack(padx=10, pady=10)
@@ -3909,7 +3909,7 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
     
     plot_wind_size=(4,3)#define the window size for the plots
 
-    fit_window=tk.Tk()
+    fit_window=tk.Toplevel()
     fit_window.title('Initial fit preview')
     fig_fit =plt.Figure(figsize=plot_wind_size, dpi=300)
     ax_fit= fig_fit.add_subplot(1, 1, 1)

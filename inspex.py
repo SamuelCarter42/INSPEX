@@ -25,6 +25,8 @@ import math
 import numdifftools
 import random#needed for random numbers
 import pickle #saves vars
+import threading  #required to allow gui updates during code
+
 plt.rcParams['figure.dpi'] = 200 #set the dpi for the plots. this can be tuned to improve figure quality
 
 bootstrap_n=30000 #this controls the number of iterations used for the bootstrap to get uncerts, need min 30 for central limit theorem
@@ -541,6 +543,15 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         #close any open figues
         #fit_window.destroy()
         fit_window=None
+        
+    #open a window, around which the main program section is built
+    
+    plot_wind_size=(4,3.5)#define the window size for the plots
+    
+    fit_window=tk.Tk()
+    fit_window.title('Fit window')
+    
+    
     
     if resid_window is not None:# and resid_window.winfo_exists():
         #close any open figues
@@ -788,48 +799,73 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #two stage fit, global and local minimisation# but only if not kappa
     #setup fitter, with resid func, param starts, and x+y data
     
-
-    if header[70] != '1':  # i.e. if the kappa func is not present
-        
-        fitter = lmfit.Minimizer(resid_calc,params,fcn_kws={'x_data': x_data_sliced,'y_data': y_data_sliced,'uncert': uncert_sliced,'header': header},scale_covar=True)
-        
-        # Run basin hopping with multiple random seeds
-        best_result = None
-        lowest_chisq = np.inf
-        n_seeds = 10  # You can adjust the number of seeds/trials as needed
-        
-        for seed in tqdm(range(n_seeds)):
-            try:#try the minimiser for this seed-if it breaks, skip
-                np.random.seed(seed)
-                random.seed(seed)
-                
-                # Run the minimizer for this seed. We pass the seed to the minimizer for reproducibility.
-                result_trial = fitter.minimize(method='basinhopping', stepsize=0.00001, seed=seed, minimizer_kwargs={'method': 'TNC', 'options': {'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}})
-        
-                
-                if result_trial.chisqr < lowest_chisq:
-                    best_result = result_trial
-                    lowest_chisq = result_trial.chisqr
-             
-            except: #ie if fit fails for this seed
-                continue
-                 
-                 
-        result_global = best_result
-        
-        #lmfit.report_fit(result_global)    
-        # Use the results from basin hopping as initial parameters for leastsq
-        params.update(result_global.params)
     
-    # Now, refine the fit using leastsq
-    fitter_local = lmfit.Minimizer(resid_calc,params,fcn_kws={'x_data': x_data_sliced,'y_data': y_data_sliced,'uncert': uncert_sliced,'header': header},scale_covar=True)
+    if header[70] != '1':
+        fitter = lmfit.Minimizer(resid_calc, params, fcn_kws={
+            'x_data': x_data_sliced,
+            'y_data': y_data_sliced,
+            'uncert': uncert_sliced,
+            'header': header
+        }, scale_covar=True)
     
-    result = fitter_local.minimize(method='lbfgsb',options={'max_nfev':50000,'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7})
-
-
+        progress_win = tk.Toplevel()
+        progress_win.title("Global Fit Progress")
+    
+        label = tk.Label(progress_win, text="Running fit...")
+        label.pack(pady=10)
+    
+        pb = ttk.Progressbar(progress_win, orient='horizontal', length=300, mode='determinate', maximum=100)
+        pb.pack(pady=20)
+    
+        def run_fit():
+            global result, fitter_local
+            best_result = None
+            lowest_chisq = float("inf")
+            n_seeds = 10
+    
+            for seed in range(n_seeds):
+                try:
+                    np.random.seed(seed)
+                    random.seed(seed)
+                    trial = fitter.minimize(
+                        method='basinhopping',
+                        stepsize=0.00001,
+                        seed=seed,
+                        minimizer_kwargs={'method': 'TNC', 'options': {'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}}
+                    )
+                    if trial.chisqr < lowest_chisq:
+                        best_result = trial
+                        lowest_chisq = trial.chisqr
+                except Exception as e:
+                    print(f"Seed {seed} failed: {e}")
+    
+                pb['value'] += 100 / n_seeds
+                pb.update_idletasks()
+    
+            if best_result is not None:
+                params.update(best_result.params)
+                fitter_local = lmfit.Minimizer(
+                    resid_calc,
+                    params,
+                    fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
+                    scale_covar=True
+                )
+                result = fitter_local.minimize(
+                    method='lbfgsb',
+                    options={'max_nfev': 50000, 'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}
+                )
+            progress_win.destroy()  # Closes the window, allows wait_window to continue
+            
+    
+        threading.Thread(target=run_fit, daemon=True).start()
+        
+        # Block until progress window is destroyed
+        progress_win.wait_window()
+        
 
     #write error report (optional, un comment for print to console)
     global fit_summary
+    global result
     fit_summary=lmfit.fit_report(result)
 
     global bic
@@ -991,12 +1027,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         fit_window.destroy()
         fit_window=None
         
-    #open a new figure in a new window
-    
-    plot_wind_size=(4,3.5)#define the window size for the plots
-    
-    fit_window=tk.Tk()
-    fit_window.title('Fit window')
+
     
     
     
@@ -1697,7 +1728,7 @@ def param_load(date,inst,spec_type): #function to load data from the file
 
 
 def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
-    window_buttons = tk.Tk()#define window. everything between here and "mainloop" makes up this window". MUST only have one tk.Tk(), all esle must be .toplevel else crashes
+    window_buttons = tk.Toplevel(fit_window)#define window. everything between here and "mainloop" makes up this window". MUST only have one tk.Tk(), all esle must be .toplevel else crashes
     window_buttons.minsize(500, 600)
     window_buttons.title("Inspex fitting GUI")
 
@@ -2820,9 +2851,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 maxval['B_tpl']=None if maxval_B_tpl_entry.get()=='None' else float( maxval_B_tpl_entry.get())
             
             
-                init['A_tpl']=None if init_A_entry.get()=='None' else float(init_A_entry.get())
-                minval['A_tpl']=None if minval_A_entry.get()=='None' else float(minval_A_entry.get())
-                maxval['A_tpl']=None if maxval_A_entry.get()=='None' else float(maxval_A_entry.get())
+                init['A_tpl']=None if init_A_tpl_entry.get()=='None' else float(init_A_tpl_entry.get())
+                minval['A_tpl']=None if minval_A_tpl_entry.get()=='None' else float(minval_A_tpl_entry.get())
+                maxval['A_tpl']=None if maxval_A_tpl_entry.get()=='None' else float(maxval_A_tpl_entry.get())
                 
                 init['A3_tpl']=None if init_A3_tpl_entry.get()=='None' else float(init_A3_tpl_entry.get())
                 minval['A3_tpl']=None if minval_A3_tpl_entry.get()=='None' else float(minval_A3_tpl_entry.get())
@@ -3912,7 +3943,7 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
     
     
     build_fit_window(x_data,y_data,uncert,date,inst,spec_type)
-    
+    fit_window.mainloop()
     
 
 
@@ -4349,11 +4380,10 @@ def instrument_choice():#function for the instrument choice window
         date=spec_df['date'].values[0]
         inst=spec_df['inst'].values[0]
         spec_type=spec_df['spec_type'].values[0]
-        
-        inspex(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
         window_inst.destroy()#closes current window
-        window_inst.update()
     
+        inspex(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
+
     
 
         

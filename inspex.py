@@ -47,6 +47,8 @@ global redchi
 redchi=0
 global bic
 bic=0
+
+
 #%% early step data load function
 
 def load_early_step_data(start_time, end_time):
@@ -1198,8 +1200,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_resids.grid()
     
     #enable this to save residuals-must change file name-make a button soon
-    with open('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/1st year/Paper 1 maybe/final figs and fits/final figs v7/TS fitting eg/'+f'ts_eas_fitting_resids.pkl', 'w+b') as f:
-        pickle.dump([resids], f)
+    #with open('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/1st year/Paper 1 maybe/final figs and fits/final figs v7/TS fitting eg/'+f'ts_eas_fitting_resids.pkl', 'w+b') as f:
+        #pickle.dump([resids], f)
      
      
     #fig_resids.savefig(fname=.png',bbox_inches='tight')

@@ -534,8 +534,26 @@ def resid_calc(pars,x_data,y_data,uncert,header): #defines the calculator for re
     #calculate values
     calcd_vals=test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
     #calc resids
-    resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)*1) #calculates the residuals
+    resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)) #calculates the residuals
     return list(resids)
+
+def neg_max_like(pars,x_data,y_data,uncert,header):#the negative maximum log likelihood 
+    #unpack params object
+    parvals=pars.valuesdict() #converts the parameters to a dictionary form
+    
+    #prob of measuring counts given model
+    
+    #calculate values
+    calcd_vals=test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
+    
+    # numerical safety: mu must be positive
+    uncert = np.maximum(uncert, 1e-12)
+
+    resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)) #calculates the residuals
+    n=len(x_data)
+    nll = 0.5 * (n * np.log(2*np.pi) + np.sum(np.log(uncert**2)) + np.sum(resids**2))
+    return nll
+
 
 def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,spec_type): #defines our fitting process
     
@@ -804,7 +822,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     
     if header[70] != '1':
-        fitter = lmfit.Minimizer(resid_calc, params, fcn_kws={
+        fitter = lmfit.Minimizer(neg_max_like, params, fcn_kws={
             'x_data': x_data_sliced,
             'y_data': y_data_sliced,
             'uncert': uncert_sliced,
@@ -848,15 +866,15 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             if best_result is not None:
                 params.update(best_result.params)
                 fitter_local = lmfit.Minimizer(
-                    resid_calc,
+                    neg_max_like,
                     params,
                     fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
-                    scale_covar=True
-                )
+                    scale_covar=True)
+                
                 result = fitter_local.minimize(
                     method='lbfgsb',
-                    options={'max_nfev': 50000, 'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}
-                )
+                    options={'max_nfev': 50000, 'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7})
+                
             progress_win.destroy()  # Closes the window, allows wait_window to continue
             
     

@@ -809,10 +809,10 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                       ('B4_5pl',init['B4_5pl'],vary['B4_5pl'],minval['B4_5pl'],maxval['B4_5pl'],None,None),
                       ('B5_5pl',init['B5_5pl'],vary['B5_5pl'],minval['B5_5pl'],maxval['B5_5pl'],None,None),
                   ('A_5pl',init['A_5pl'],vary['A_5pl'],minval['A_5pl'],maxval['A_5pl'],None,None),
-                  ('A2_5pl',init['A2_5pl'] ,vary['A2_5pl'],minval['A2_5pl'],maxval['A2_5pl'],'A_5pl * x1**(B-B2)',None),
-                  ('A3_5pl',init['A3_5pl'] ,vary['A3_5pl'],minval['A3_5pl'],maxval['A3_5pl'],'A2_5pl * x2**(B2-B3)',None),
-                  ('A4_5pl',init['A4_5pl'] ,vary['A4_5pl'],minval['A4_5pl'],maxval['A4_5pl'],'A3_5pl * x3**(B3-B4)',None),
-                  ('A5_5pl',init['A5_5pl'] ,vary['A5_5pl'],minval['A5_5pl'],maxval['A5_5pl'],'A4_5pl * x4**(B4-B5_5pl)',None))#must add after A_5pl is defined
+                  ('A2_5pl',init['A2_5pl'] ,vary['A2_5pl'],minval['A2_5pl'],maxval['A2_5pl'],'A_5pl * x1_5pl**(B_5pl-B2_5pl)',None),
+                  ('A3_5pl',init['A3_5pl'] ,vary['A3_5pl'],minval['A3_5pl'],maxval['A3_5pl'],'A2_5pl * x2_5pl**(B2_5pl-B3_5pl)',None),
+                  ('A4_5pl',init['A4_5pl'] ,vary['A4_5pl'],minval['A4_5pl'],maxval['A4_5pl'],'A3_5pl * x3_5pl**(B3_5pl-B4_5pl)',None),
+                  ('A5_5pl',init['A5_5pl'] ,vary['A5_5pl'],minval['A5_5pl'],maxval['A5_5pl'],'A4_5pl * x4_5pl**(B4_5pl-B5_5pl)',None))#must add after A_5pl is defined
         
         
     
@@ -1704,7 +1704,7 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
             save_pars['A4_5pl']=None if init_A4_5pl_entry.get()=='None' else float(init_A4_5pl_entry.get())
             save_pars['B4_5pl']=None if init_B4_5pl_entry.get()=='None' else float(init_B4_5pl_entry.get())            
             save_pars['A5_5pl']=None if init_A5_5pl_entry.get()=='None' else float(init_A5_5pl_entry.get())
-            save_pars['B5']=None if init_B5_entry.get()=='None' else float(init_B5_entry.get())
+            save_pars['B5_5pl']=None if init_B5_5pl_entry.get()=='None' else float(init_B5_5pl_entry.get())
             
     except ValueError as e:
            tk.messagebox.showerror("Invalid Input","Inputs should be floating point intergers")
@@ -2236,9 +2236,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             add_param_row(frame_double_therm, 6, "alpha_d_2", init['alpha_d_2'], minval['alpha_d_2'], maxval['alpha_d_2'], vary['alpha_d_2'], toggle_alpha_d_2, "alpha_d_2")
 
             def hndl_remove_double_therm_btn():
-                global double_therm_pres
+                global double_therm_func_pres
                 frame_double_therm.grid_forget()
-                double_therm_pres = 0
+                double_therm_func_pres = 0
 
             tk.Button(frame_double_therm, text='Remove Double Thermal component', command=hndl_remove_double_therm_btn)\
                 .grid(row=7, column=0, columnspan=5, pady=10)
@@ -2246,7 +2246,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             frame_double_therm.grid(row=8, column=0, sticky="ew")
             for i in range(7):
                 frame_double_therm.grid_columnconfigure(i, weight=1)
-            double_therm_pres = 1 #set the thermal function as present
+            double_therm_func_pres = 1 #set the thermal function as present
     
     
     
@@ -2949,9 +2949,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 minval['x3_5pl']=None if minval_x3_5pl_entry.get()=='None' else float(minval_x3_5pl_entry.get())
                 maxval['x3_5pl']=None if maxval_x3_5pl_entry.get()=='None' else float(maxval_x3_5pl_entry.get())
                 
-                init['x4_5pl']=None if init_x4_entry.get()=='None' else float(init_x4_entry.get())
-                minval['x4_5pl']=None if minval_x4_entry.get()=='None' else float(minval_x4_entry.get())
-                maxval['x4_5pl']=None if maxval_x4_entry.get()=='None' else float(maxval_x4_entry.get())
+                init['x4_5pl']=None if init_x4_5pl_entry.get()=='None' else float(init_x4_5pl_entry.get())
+                minval['x4_5pl']=None if minval_x4_5pl_entry.get()=='None' else float(minval_x4_5pl_entry.get())
+                maxval['x4_5pl']=None if maxval_x4_5pl_entry.get()=='None' else float(maxval_x4_5pl_entry.get())
                 
                 init['A2_5pl']=None if init_A2_5pl_entry.get()=='None' else float(init_A2_5pl_entry.get())
                 minval['A2_5pl']=None if minval_A2_5pl_entry.get()=='None' else float(minval_A2_5pl_entry.get())

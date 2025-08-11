@@ -26,6 +26,7 @@ import numdifftools
 import random#needed for random numbers
 import pickle #saves vars
 import threading  #required to allow gui updates during code
+from eas_data_load_v27 import EAS_data_load#this is the custom function for loading EAS data
 
 plt.rcParams['figure.dpi'] = 200 #set the dpi for the plots. this can be tuned to improve figure quality
 
@@ -4114,6 +4115,27 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel):#function for the 
     if inst=="STEREO STE":
         time_series_time,time_series_energies,time_series_data,time_series_uncert=stereo_data_load(start_time, end_time)
     
+    if inst=="SolO-EAS":
+        low_e_cutoff=0.5
+        date_for_spec=dt.datetime.strftime(dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S").date(),'%Y/%m/%d')
+        epd_xyz_sectors=np.array([[-0.8412,  0.4396,  0.3149],
+        [-0.8743,  0.457 ,  0.1635],
+        [-0.8862,  0.4632, -0.    ],
+        [-0.8743,  0.457 , -0.1635],
+        [-0.8412,  0.4396, -0.315 ],
+        [-0.7775,  0.5444,  0.3149],
+        [-0.8082,  0.5658,  0.1635],
+        [-0.8191,  0.5736,  0.    ],
+        [-0.8082,  0.5659, -0.1634],
+        [-0.7775,  0.5444, -0.3149],
+        [-0.7008,  0.6401,  0.3149],
+        [-0.7284,  0.6653,  0.1634],
+        [-0.7384,  0.6744, -0.    ],
+        [-0.7285,  0.6653, -0.1635],
+        [-0.7008,  0.6401, -0.315 ]])
+        
+        time_series_time,time_series_energies,time_series_data,time_series_uncert=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+    
     
     
     #slice loaded data to range selected by user, as generally loads in full days
@@ -4331,8 +4353,9 @@ def instrument_choice():#function for the instrument choice window
     greeting = tk.Label(master=frame_instopts,text="Inspex fitting GUI")#window name. MUST only have one tk.Tk(), all else must be .toplevel else crashes. This is .TK as is first to open 
     greeting.pack()
     OPTIONS = [
-        "SolO STEP",
-        "STEREO STE"
+        "SolO EPD STEP",
+        "STEREO STE",
+        "SolO SWA EAS, alligned to EPD STEP"
         ]     
     variable = tk.StringVar()
     variable.set(OPTIONS[0]) # default value
@@ -4420,11 +4443,13 @@ def instrument_choice():#function for the instrument choice window
             tk.messagebox.showerror("Invalid Input",'Dates must have format: YYYY/mm/dd HH:MM:SS')
         else:
             selected_func=variable.get()
-            if selected_func=='SolO STEP':
+            if selected_func=='SolO EPD STEP':
                 inst="SolO-STEP"
             if selected_func=='STEREO STE':
                 inst="STEREO STE"
-                    
+            if selected_func=='SolO SWA EAS, alligned to EPD STEP':
+                inst="SolO-EAS"
+                
                     
                     
             window_inst.destroy()#closes current window
@@ -4467,6 +4492,28 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
     
     if inst=="STEREO STE":
         time_series_time,time_series_energies,time_series_data,time_series_uncert=stereo_data_load(start_time, end_time)
+    
+    if inst=="SolO-EAS":
+        low_e_cutoff=0.5
+        date_for_spec=dt.datetime.strftime(dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S").date(),'%Y/%m/%d')
+        epd_xyz_sectors=np.array([[-0.8412,  0.4396,  0.3149],
+        [-0.8743,  0.457 ,  0.1635],
+        [-0.8862,  0.4632, -0.    ],
+        [-0.8743,  0.457 , -0.1635],
+        [-0.8412,  0.4396, -0.315 ],
+        [-0.7775,  0.5444,  0.3149],
+        [-0.8082,  0.5658,  0.1635],
+        [-0.8191,  0.5736,  0.    ],
+        [-0.8082,  0.5659, -0.1634],
+        [-0.7775,  0.5444, -0.3149],
+        [-0.7008,  0.6401,  0.3149],
+        [-0.7284,  0.6653,  0.1634],
+        [-0.7384,  0.6744, -0.    ],
+        [-0.7285,  0.6653, -0.1635],
+        [-0.7008,  0.6401, -0.315 ]])
+        
+        time_series_time,time_series_energies,time_series_data,time_series_uncert=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+    
     
     
     spec_type="intervals" #the type of the spectra this generates

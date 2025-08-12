@@ -1674,7 +1674,7 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
             save_pars['B2_tpl']=None if init_B2_tpl_entry.get()=='None' else float(init_B2_tpl_entry.get())
             save_pars['B_tpl']=None if init_B_tpl_entry.get()=='None' else float(init_B_tpl_entry.get())
             save_pars['A_tpl']=None if init_A_tpl_entry.get()=='None' else float(init_A_tpl_entry.get())
-            save_pars['A3_tpl']=None if init_A3_tpl_entry.get()=='None' else float(init_tpl_A3_tpl_entry.get())            
+            save_pars['A3_tpl']=None if init_A3_tpl_entry.get()=='None' else float(init_A3_tpl_entry.get())            
             save_pars['B3_tpl']=None if init_B3_tpl_entry.get()=='None' else float(init_B3_tpl_entry.get())
             
         if qpl_pres==1:#if qpl function present, save parameter options from the gui for that function

@@ -822,7 +822,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     
     if header[70] != '1':
-        fitter = lmfit.Minimizer(neg_max_like, params, fcn_kws={
+        fitter = lmfit.Minimizer(resid_calc, params, fcn_kws={
             'x_data': x_data_sliced,
             'y_data': y_data_sliced,
             'uncert': uncert_sliced,
@@ -866,7 +866,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             if best_result is not None:
                 params.update(best_result.params)
                 fitter_local = lmfit.Minimizer(
-                    neg_max_like,
+                    resid_calc,
                     params,
                     fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
                     scale_covar=True)

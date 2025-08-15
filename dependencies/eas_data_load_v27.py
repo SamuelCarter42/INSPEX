@@ -44,7 +44,8 @@ sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Producti
 
 def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
-
+    tstart_set=tstart
+    tend_set=date_for_spec+'T23:59:59'
 
     #must load day before and after too, to avoid data gaps
     
@@ -341,8 +342,13 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     uncert_curve=temp_curve/valid_widths[None,:]
     
+    #%%cut back down to just day of interest
     
     
+    mask=(times_flux>=dt.datetime.strptime(tstart_set,"%Y/%m/%d %H:%M:%S")) & (times_flux<dt.datetime.strptime(tend_set,"%Y/%m/%d %H:%M:%S") )
+    times_flux=times_flux[mask]
+    flux_curve=flux_curve[mask,:]
+    uncert_curve=uncert_curve[mask,:]
     #Can outputbin limits too
     return times_flux,valid_energies,flux_curve,uncert_curve#,np.array(energy_lims_eas)/1000
 

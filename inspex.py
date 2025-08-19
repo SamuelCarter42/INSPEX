@@ -817,10 +817,11 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         
     
         
-    #two stage fit, global and local minimisation# but only if not kappa
+    #two stage fit, global and local minimisation# 
     #setup fitter, with resid func, param starts, and x+y data
     
     
+
     
     fitter = lmfit.Minimizer(resid_calc, params, fcn_kws={
         'x_data': x_data_sliced,
@@ -866,6 +867,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         if best_result is not None:
             params.update(best_result.params)
             fitter_local = lmfit.Minimizer(
+
+                neg_max_like,
                 resid_calc,
                 params,
                 fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
@@ -4115,7 +4118,50 @@ def interval_spec_gen(time_series_time,time_series_energies,time_series_data,tim
     return spectra
 #%%peak/fluence time range and background selection
 
-def time_rng_select(inst, start_time, end_time,spec_type_sel):#function for the time range window
+#resampling function
+def custom_resampler(arraylike):
+        
+    arraylike2=np.nanmean(arraylike)
+
+    return (arraylike2)
+
+def custom_resampler_uncert(arraylike):
+        
+    arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
+    if np.isnan(arraylike2).any():
+        arraylike2=0
+    return (arraylike2)
+def resample_func(time,data,uncert,resample_dur):
+    
+    series_list=list()
+    uncert_series_list=list()
+    #must transpose to make E by t for resampling
+    for e_row in data.transpose():    #resample each energy row of data array
+        data_series=pd.Series(e_row,time).resample(resample_dur).apply(custom_resampler)
+        series_list.append(data_series)
+    
+    for e_row in uncert.transpose():#resample each energy row of uncert array
+        uncert_series=pd.Series(e_row,time).resample(resample_dur).apply(custom_resampler_uncert)
+        uncert_series_list.append(uncert_series)
+    
+    res_data=list()
+    res_uncert=list()
+    
+    for e_row in series_list:    #unpack each row of the data series array
+        this_chan=e_row.values
+        res_data.append(this_chan)
+    
+    for e_row in uncert_series_list:    #unpack each row of the uncert series array
+        this_chan=e_row.values
+        res_uncert.append(this_chan)
+    
+    res_times=np.array(series_list[0].index)#times will be same for every row, just take first
+    #must transpose to make t by E for rest of process
+    return res_times,np.array(res_data).transpose(),np.array(res_uncert).transpose()
+    
+
+
+def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#function for the time range window
     
     
 
@@ -4125,13 +4171,16 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel):#function for the 
     if inst=="SolO-STEP":
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
             time_series_time,time_series_energies,time_series_data,time_series_uncert=load_early_step_data(start_time, end_time)
-        else:#porst-recalibration
+        else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
             time_series_time,time_series_energies,time_series_data,time_series_uncert=load_late_step_data(start_time, end_time)
-            
-            #later data recalibrated and changed-must have different routines to interpret
+                            
+        if resample_dur!=None:
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="STEREO STE":
         time_series_time,time_series_energies,time_series_data,time_series_uncert=stereo_data_load(start_time, end_time)
+        if resample_dur!=None:
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="SolO-EAS":
         low_e_cutoff=0.5
@@ -4153,9 +4202,45 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel):#function for the 
         [-0.7008,  0.6401, -0.315 ]])
         
         time_series_time,time_series_energies,time_series_data,time_series_uncert=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        if resample_dur!=None:
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
-    
-    
+    if inst=="SolO-EAS+STEP":
+        #load eas
+        low_e_cutoff=0.5
+        date_for_spec=dt.datetime.strftime(dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S").date(),'%Y/%m/%d')
+        epd_xyz_sectors=np.array([[-0.8412,  0.4396,  0.3149],
+        [-0.8743,  0.457 ,  0.1635],
+        [-0.8862,  0.4632, -0.    ],
+        [-0.8743,  0.457 , -0.1635],
+        [-0.8412,  0.4396, -0.315 ],
+        [-0.7775,  0.5444,  0.3149],
+        [-0.8082,  0.5658,  0.1635],
+        [-0.8191,  0.5736,  0.    ],
+        [-0.8082,  0.5659, -0.1634],
+        [-0.7775,  0.5444, -0.3149],
+        [-0.7008,  0.6401,  0.3149],
+        [-0.7284,  0.6653,  0.1634],
+        [-0.7384,  0.6744, -0.    ],
+        [-0.7285,  0.6653, -0.1635],
+        [-0.7008,  0.6401, -0.315 ]])
+        
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        if resample_dur!=None:#resample eas
+            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
+        
+        #load step
+        if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert=load_early_step_data(start_time, end_time)
+        else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert=load_late_step_data(start_time, end_time)
+        
+        if resample_dur!=None:#resample step
+            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
+        
+        #after resampling, time series should line up. we take eas
+        time_series_time=eas_time_series_time
+        breakpoint()
     #slice loaded data to range selected by user, as generally loads in full days
     
     
@@ -4373,7 +4458,8 @@ def instrument_choice():#function for the instrument choice window
     OPTIONS = [
         "SolO EPD STEP",
         "STEREO STE",
-        "SolO SWA EAS, alligned to EPD STEP"
+        "SolO SWA EAS, alligned to EPD STEP",
+        "Combined SolO SWA EAS and EPD STEP"
         ]     
     variable = tk.StringVar()
     variable.set(OPTIONS[0]) # default value
@@ -4401,15 +4487,31 @@ def instrument_choice():#function for the instrument choice window
     
     
     frame_specopts=tk.Frame(master=window_inst)
-    OPTIONS = [
+    TYP_OPTIONS = [
         "fluence","peak flux","flux at set time(s)"
         
         ]     
     var_spec_type = tk.StringVar()
-    var_spec_type.set(OPTIONS[1]) # default value    
-    spec_opts = tk.OptionMenu(frame_specopts, var_spec_type, *OPTIONS)
+    var_spec_type.set(TYP_OPTIONS[1]) # default value    
+    spec_opts = tk.OptionMenu(frame_specopts, var_spec_type, *TYP_OPTIONS)
     spec_opts.pack()
     frame_specopts.pack(side=tk.LEFT)
+    
+    #handling resampling selection
+    RES_OPTIONS = [
+        "No Resampling",
+        "1 minute resampling",
+        "2 minute resampling",
+        "5 minute resampling",
+        "10 minute resampling",
+        "30 minute resampling"
+        ]     
+    res_var = tk.StringVar()
+    res_var.set(RES_OPTIONS[0]) # default value
+    
+    res_opts = tk.OptionMenu(frame_instopts, res_var, *RES_OPTIONS)
+    res_opts.pack()
+    
     
     
     #define spectrum loading
@@ -4457,7 +4559,7 @@ def instrument_choice():#function for the instrument choice window
         
         start_time=start_entry.get()#gets the entered value
         end_time=end_entry.get()#gets the entered value
-        if not (validate_date(start_time) and validate_date(end_time)):
+        if not (validate_date(start_time) and validate_date(end_time)):#if correctly formatted 
             tk.messagebox.showerror("Invalid Input",'Dates must have format: YYYY/mm/dd HH:MM:SS')
         else:
             selected_func=variable.get()
@@ -4467,8 +4569,19 @@ def instrument_choice():#function for the instrument choice window
                 inst="STEREO STE"
             if selected_func=='SolO SWA EAS, alligned to EPD STEP':
                 inst="SolO-EAS"
-                
+            if selected_func== "Combined SolO SWA EAS and EPD STEP":
+                inst="SolO-EAS+STEP"
                     
+            #handling the resampling selection
+            res_sel=res_var.get()
+            if res_sel=="No Resampling":
+                if inst=="SolO-EAS+STEP":
+                    tk.messagebox.showerror("Invalid Input",'Combined instruments must have some resapling to align timings')
+                else:resample_dur=None#no resampling
+            else:
+                resample_dur=res_sel.split()[0]+"min"
+                    
+            
                     
             window_inst.destroy()#closes current window
             window_inst.update()
@@ -4476,7 +4589,7 @@ def instrument_choice():#function for the instrument choice window
             spec_type_sel=var_spec_type.get()
             
             if spec_type_sel=="fluence" or spec_type_sel=="peak flux":
-                time_rng_select(inst,start_time,end_time,spec_type_sel)#runs time range selection function
+                time_rng_select(inst,start_time,end_time,spec_type_sel,resample_dur)#runs time range selection function
             
             elif spec_type_sel=="flux at set time(s)":
                 intervals_select(inst,start_time,end_time,spec_type_sel)

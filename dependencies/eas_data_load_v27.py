@@ -44,7 +44,8 @@ sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Producti
 
 def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
-
+    tstart_set=tstart
+    tend_set=date_for_spec+' 23:59:59'
 
     #must load day before and after too, to avoid data gaps
     
@@ -288,8 +289,10 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     #print(count_curve_raw.shape)
     
-    combo_energies=np.array(energies)
-    
+    if len(energies)!=64:#sometimes energies as array, sometimes as a single list. this ensures we get 64 length array
+        combo_energies=np.array(energies[0])#each time has same energy bins so use first
+    else: 
+        combo_energies=np.array(energies)
     #breakpoint()
     #%%sawtooth correction, only keep even index bins
     count_curve_valid=list()
@@ -298,6 +301,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     valid_widths=list()
     energy_lims_eas=list()
     for count, energy in enumerate(combo_energies):
+        #breakpoint()
         if count % 2 == 0: #if is even
             count_curve_valid.append([i[count] for i in count_curve_raw])
             flux_curve_valid.append([i[count] for i in flux_curve_raw])
@@ -341,8 +345,13 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     uncert_curve=temp_curve/valid_widths[None,:]
     
+    #%%cut back down to just day of interest
     
     
+    mask=(times_flux>=dt.datetime.strptime(tstart_set,"%Y/%m/%d %H:%M:%S")) & (times_flux<dt.datetime.strptime(tend_set,"%Y/%m/%d %H:%M:%S") )
+    times_flux=times_flux[mask]
+    flux_curve=flux_curve[mask,:]
+    uncert_curve=uncert_curve[mask,:]
     #Can outputbin limits too
     return times_flux,valid_energies,flux_curve,uncert_curve#,np.array(energy_lims_eas)/1000
 

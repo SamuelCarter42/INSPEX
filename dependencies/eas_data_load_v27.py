@@ -45,7 +45,7 @@ sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Producti
 def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
     tstart_set=tstart
-    tend_set=date_for_spec+'T23:59:59'
+    tend_set=date_for_spec+' 23:59:59'
 
     #must load day before and after too, to avoid data gaps
     
@@ -289,7 +289,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     #print(count_curve_raw.shape)
     
-    combo_energies=np.array(energies)
+    combo_energies=np.array(energies[0])#each time has same energy bins so use first
     
     #breakpoint()
     #%%sawtooth correction, only keep even index bins
@@ -299,6 +299,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     valid_widths=list()
     energy_lims_eas=list()
     for count, energy in enumerate(combo_energies):
+        #breakpoint()
         if count % 2 == 0: #if is even
             count_curve_valid.append([i[count] for i in count_curve_raw])
             flux_curve_valid.append([i[count] for i in flux_curve_raw])

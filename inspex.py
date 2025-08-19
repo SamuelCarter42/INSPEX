@@ -822,7 +822,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     
 
-    fitter = lmfit.Minimizer(neg_max_like, params, fcn_kws={
+    
+    fitter = lmfit.Minimizer(resid_calc, params, fcn_kws={
         'x_data': x_data_sliced,
         'y_data': y_data_sliced,
         'uncert': uncert_sliced,
@@ -866,7 +867,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         if best_result is not None:
             params.update(best_result.params)
             fitter_local = lmfit.Minimizer(
+
                 neg_max_like,
+                resid_calc,
                 params,
                 fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
                 scale_covar=True)
@@ -1674,7 +1677,7 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
             save_pars['B2_tpl']=None if init_B2_tpl_entry.get()=='None' else float(init_B2_tpl_entry.get())
             save_pars['B_tpl']=None if init_B_tpl_entry.get()=='None' else float(init_B_tpl_entry.get())
             save_pars['A_tpl']=None if init_A_tpl_entry.get()=='None' else float(init_A_tpl_entry.get())
-            save_pars['A3_tpl']=None if init_A3_tpl_entry.get()=='None' else float(init_tpl_A3_tpl_entry.get())            
+            save_pars['A3_tpl']=None if init_A3_tpl_entry.get()=='None' else float(init_A3_tpl_entry.get())            
             save_pars['B3_tpl']=None if init_B3_tpl_entry.get()=='None' else float(init_B3_tpl_entry.get())
             
         if qpl_pres==1:#if qpl function present, save parameter options from the gui for that function

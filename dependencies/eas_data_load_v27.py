@@ -289,8 +289,10 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     #print(count_curve_raw.shape)
     
-    combo_energies=np.array(energies[0])#each time has same energy bins so use first
-    
+    if len(energies)!=64:#sometimes energies as array, sometimes as a single list. this ensures we get 64 length array
+        combo_energies=np.array(energies[0])#each time has same energy bins so use first
+    else: 
+        combo_energies=np.array(energies)
     #breakpoint()
     #%%sawtooth correction, only keep even index bins
     count_curve_valid=list()

@@ -817,72 +817,72 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         
     
         
-    #two stage fit, global and local minimisation# but only if not kappa
+    #two stage fit, global and local minimisation# 
     #setup fitter, with resid func, param starts, and x+y data
     
     
-    if header[70] != '1':
-        fitter = lmfit.Minimizer(neg_max_like, params, fcn_kws={
-            'x_data': x_data_sliced,
-            'y_data': y_data_sliced,
-            'uncert': uncert_sliced,
-            'header': header
-        }, scale_covar=True)
-    
-        progress_win = tk.Toplevel()
-        progress_win.title("Global Fit Progress")
-    
-        label = tk.Label(progress_win, text="Running fit...")
-        label.pack(pady=10)
-    
-        pb = ttk.Progressbar(progress_win, orient='horizontal', length=300, mode='determinate', maximum=100)
-        pb.pack(pady=20)
-    
-        def run_fit():
-            global result, fitter_local
-            best_result = None
-            lowest_chisq = float("inf")
-            n_seeds = 10
-    
-            for seed in range(n_seeds):
-                try:
-                    np.random.seed(seed)
-                    random.seed(seed)
-                    trial = fitter.minimize(
-                        method='basinhopping',
-                        stepsize=0.00001,
-                        seed=seed,
-                        minimizer_kwargs={'method': 'TNC', 'options': {'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}}
-                    )
-                    if trial.chisqr < lowest_chisq:
-                        best_result = trial
-                        lowest_chisq = trial.chisqr
-                except Exception as e:
-                    print(f"Seed {seed} failed: {e}")
-    
-                pb['value'] += 100 / n_seeds
-                pb.update_idletasks()
-    
-            if best_result is not None:
-                params.update(best_result.params)
-                fitter_local = lmfit.Minimizer(
-                    neg_max_like,
-                    params,
-                    fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
-                    scale_covar=True)
-                
-                result = fitter_local.minimize(
-                    method='lbfgsb',
-                    options={'max_nfev': 50000, 'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7})
-                
-            progress_win.destroy()  # Closes the window, allows wait_window to continue
+
+    fitter = lmfit.Minimizer(neg_max_like, params, fcn_kws={
+        'x_data': x_data_sliced,
+        'y_data': y_data_sliced,
+        'uncert': uncert_sliced,
+        'header': header
+    }, scale_covar=True)
+
+    progress_win = tk.Toplevel()
+    progress_win.title("Global Fit Progress")
+
+    label = tk.Label(progress_win, text="Running fit...")
+    label.pack(pady=10)
+
+    pb = ttk.Progressbar(progress_win, orient='horizontal', length=300, mode='determinate', maximum=100)
+    pb.pack(pady=20)
+
+    def run_fit():
+        global result, fitter_local
+        best_result = None
+        lowest_chisq = float("inf")
+        n_seeds = 10
+
+        for seed in range(n_seeds):
+            try:
+                np.random.seed(seed)
+                random.seed(seed)
+                trial = fitter.minimize(
+                    method='basinhopping',
+                    stepsize=0.00001,
+                    seed=seed,
+                    minimizer_kwargs={'method': 'TNC', 'options': {'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}}
+                )
+                if trial.chisqr < lowest_chisq:
+                    best_result = trial
+                    lowest_chisq = trial.chisqr
+            except Exception as e:
+                print(f"Seed {seed} failed: {e}")
+
+            pb['value'] += 100 / n_seeds
+            pb.update_idletasks()
+
+        if best_result is not None:
+            params.update(best_result.params)
+            fitter_local = lmfit.Minimizer(
+                neg_max_like,
+                params,
+                fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
+                scale_covar=True)
             
+            result = fitter_local.minimize(
+                method='lbfgsb',
+                options={'max_nfev': 50000, 'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7})
+            
+        progress_win.destroy()  # Closes the window, allows wait_window to continue
+        
+
+    threading.Thread(target=run_fit, daemon=True).start()
     
-        threading.Thread(target=run_fit, daemon=True).start()
-        
-        # Block until progress window is destroyed
-        progress_win.wait_window()
-        
+    # Block until progress window is destroyed
+    progress_win.wait_window()
+    
 
     #write error report (optional, un comment for print to console)
     global fit_summary

@@ -838,7 +838,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
     pb = ttk.Progressbar(progress_win, orient='horizontal', length=300, mode='determinate', maximum=100)
     pb.pack(pady=20)
-
+    #breakpoint()
     def run_fit():
         global result, fitter_local
         best_result = None
@@ -867,11 +867,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         if best_result is not None:
             params.update(best_result.params)
             fitter_local = lmfit.Minimizer(
-
-                neg_max_like,
                 resid_calc,
                 params,
-                fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
+                fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
                 scale_covar=True)
             
             result = fitter_local.minimize(

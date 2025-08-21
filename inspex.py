@@ -1001,7 +1001,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     redchi=chi_sq/dof
 
 
-    
+    #breakpoint()
     #return the parameter uncertainties as well
     global param_uncert_calced
     native_uncert=result.errorbars#this determines if uncerts were generated natively in the fit
@@ -2040,7 +2040,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             
             global init#define global initial values for the params of the function
             
-            init['A_k']=10**-22
+            init['A_k']=10**-20
             init['T_k']=300000000.0
             init['m_i']=9.11*1e-31
             init['n_i']=1e15
@@ -2056,7 +2056,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             
             global minval##define global minimum values for the params of the function
             
-            minval['A_k']=0
+            minval['A_k']=1e-22
             minval['T_k']=1e6
             minval['m_i']=0
             minval['n_i']=None

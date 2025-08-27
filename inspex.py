@@ -838,7 +838,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
     pb = ttk.Progressbar(progress_win, orient='horizontal', length=300, mode='determinate', maximum=100)
     pb.pack(pady=20)
-
+    #breakpoint()
     def run_fit():
         global result, fitter_local
         best_result = None
@@ -867,11 +867,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         if best_result is not None:
             params.update(best_result.params)
             fitter_local = lmfit.Minimizer(
-
-                neg_max_like,
                 resid_calc,
                 params,
-                fcn_kws={'x_data': x_data, 'y_data': y_data, 'uncert': uncert, 'header': header},
+                fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
                 scale_covar=True)
             
             result = fitter_local.minimize(
@@ -1003,7 +1001,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     redchi=chi_sq/dof
 
 
-    
+    #breakpoint()
     #return the parameter uncertainties as well
     global param_uncert_calced
     native_uncert=result.errorbars#this determines if uncerts were generated natively in the fit
@@ -2042,7 +2040,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             
             global init#define global initial values for the params of the function
             
-            init['A_k']=10**-22
+            init['A_k']=10**-20
             init['T_k']=300000000.0
             init['m_i']=9.11*1e-31
             init['n_i']=1e15
@@ -2058,7 +2056,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             
             global minval##define global minimum values for the params of the function
             
-            minval['A_k']=0
+            minval['A_k']=1e-22
             minval['T_k']=1e6
             minval['m_i']=0
             minval['n_i']=None

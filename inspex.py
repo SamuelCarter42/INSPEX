@@ -565,12 +565,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         #fit_window.destroy()
         fit_window=None
         
-    #open a window, around which the main program section is built
-    
-    plot_wind_size=(4,3.5)#define the window size for the plots
-    
-    fit_window=tk.Toplevel()
-    fit_window.title('Fit window')
+
     
     
     
@@ -1048,14 +1043,14 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             #close any open figues
         fit_window.destroy()
         fit_window=None
-        
-
+        print("test") 
     
+    #open a window, around which the main program section is built
     
+    plot_wind_size=(4,3.5)#define the window size for the plots
     
-    
-    
-    
+    fit_window=tk.Toplevel()
+    fit_window.title('Fit window')
     
     fig_fit =plt.Figure()#figsize=plot_wind_size, dpi=200)
     ax_fit= fig_fit.add_subplot()#1, 1, 1)

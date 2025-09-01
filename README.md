@@ -1,7 +1,7 @@
 # INSPEX
 A GUI for In-Situ electron energy spectral analysis
 
-Intended as an in-situ equivalent to OSPEX for HXRs, this software provides a user-friendly pipeline to download, analyse and fit in-situ electron spectra. The guiding methodologyis laid out in Carter et al 2025 (in prep).
+Intended as an in-situ equivalent to OSPEX for HXRs, this software provides a user-friendly pipeline to download, analyse and fit in-situ electron spectra. The guiding methodology is laid out in Carter et al 2025 (in prep).
 
 This software was written using Anaconda, and I reccomend that distribution is used to run the software. In addition to the packages included in that ditribution, the following packages are also required:
 lmfit

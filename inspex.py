@@ -400,14 +400,14 @@ def lin_func2(x,A2,B2):#one of the power laws that makes up the broken power law
     return y_lin_2
 
 
-def broken_power_law(x,x1,A,B,A2,B2): #defines a broken power law to fit, like the thick target approx.
+def broken_power_law(x,x1,A,B,A2,B2,x0_bpl,dx_bpl): #defines a broken power law to fit, like the thick target approx.
         
     if type(x)==int:
-        xlo=1 if x<x1 else 0 #below x1
+        xlo=((erf(((x-x0_bpl)/dx_bpl))+1)/2) if x<x1 else 0 #below x0 if x<x1 else 0
         xhi=1 if x>=x1 else 0#above x1  
     else:
         x=np.array(x)
-        xlo=[ 1 if x_i<x1 else 0 for x_i in x] #below x1
+        xlo=[ ((erf(((x_i-x0_bpl)/dx_bpl))+1)/2) if x_i<x1 else 0 for x_i in x] #below x1
         xhi=[ 1 if x_i>=x1 else 0 for x_i in x]#above x1    
     y_bpl=(xlo*lin_func(x,A,B))+(xhi*lin_func2(x,A2,B2))
     return y_bpl
@@ -417,9 +417,10 @@ def gauss_func(x,gauss_amp,gauss_centre,sigma): #defines a gaussian function tha
     y_gauss=gauss_amp*np.exp((-(x-gauss_centre)**2)/(2*sigma**2))
     return y_gauss
 
-def power_func(x,A_sing,B_sing): #defines a simgle power law that can be added
+def power_func(x,A_sing,B_sing,dx_sing,x0_sing): #defines a simgle power law that can be added
     x=np.array(x)
-    y_pow=(A_sing*(x**B_sing))
+    xlo_sing=(erf(((x-x0_sing)/dx_sing))+1)/2#below x0
+    y_pow=xlo_sing*(A_sing*(x**B_sing))
     return y_pow
 
 def kappa_func(x, A_k, T_k, m_i, n_i, kappa):
@@ -472,15 +473,15 @@ def double_therm_func(x,therm_amp,T,alpha,therm_amp2,T2,alpha2): #defines the th
 
 #a triple power law
 
-def triple_power_law(x,x1,x2,A,B,A2,B2,A3,B3):
+def triple_power_law(x,x1,x2,A,B,A2,B2,A3,B3,x0_tpl,dx_tpl):
     
     if type(x)==int:
-        xlo=1 if x<x1 else 0 #below x1
+        xlo=((erf(((x-x0_tpl)/dx_tpl))+1)/2) if x<x1 else 0 #below x1
         xmid=1  if (x>=x1 and x<=x2) else 0 #between x1 and x2
         xhi=1 if x>x2 else 0#above x2  
     else:
         x=np.array(x)
-        xlo=[ 1 if x_i<x1 else 0 for x_i in x] #below x1
+        xlo=[ ((erf(((x_i-x0_tpl)/dx_tpl))+1)/2) if x_i<x1 else 0 for x_i in x] #below x1
         xmid =[ 1 if (x_i>=x1 and x_i<=x2) else 0 for x_i in x] #between x1 and x2
         xhi=[ 1 if x_i>=x2 else 0 for x_i in x]#above x2    
     
@@ -488,16 +489,16 @@ def triple_power_law(x,x1,x2,A,B,A2,B2,A3,B3):
     y_tpl=(xlo*lin_func(x,A,B))+(xmid*lin_func2(x,A2,B2))+(xhi*lin_func2(x,A3,B3))
     return y_tpl
 
-def quad_power_law(x,x1,x2,x3,A,B,A2,B2,A3,B3,A4,B4):
+def quad_power_law(x,x1,x2,x3,A,B,A2,B2,A3,B3,A4,B4,x0_qpl,dx_qpl):
     
     if type(x)==int:
-        xlo=1 if x<x1 else 0 #below x1
+        xlo=((erf(((x-x0_qpl)/dx_qpl))+1)/2) if x<x1 else 0 #below x1
         xmid1=1  if (x>=x1 and x<=x2) else 0 #between x1 and x2
         xmid2=1  if (x>x2 and x<=x3) else 0 #between x2 and x3
         xhi=1 if x>x3 else 0#above x3  
     else:
         x=np.array(x)
-        xlo=[ 1 if x_i<x1 else 0 for x_i in x] #below x1
+        xlo=[ ((erf(((x_i-x0_qpl)/dx_qpl))+1)/2) if x_i<x1 else 0 for x_i in x] #below x1
         xmid1 =[ 1 if (x_i>=x1 and x_i<=x2) else 0 for x_i in x] #between x1 and x2
         xmid2 =[ 1 if (x_i>x2 and x_i<=x3) else 0 for x_i in x] #between x2 and x3
         xhi=[ 1 if x_i>x3 else 0 for x_i in x]#above x3    
@@ -506,17 +507,17 @@ def quad_power_law(x,x1,x2,x3,A,B,A2,B2,A3,B3,A4,B4):
     y_qpl=(xlo*lin_func2(x,A,B))+(xmid1*lin_func2(x,A2,B2))+(xmid2*lin_func2(x,A3,B3))+(xhi*lin_func2(x,A4,B4))
     return y_qpl
 
-def quint_power_law(x,x1,x2,x3,x4,A,B,A2,B2,A3,B3,A4,B4,A5,B5):
+def quint_power_law(x,x1,x2,x3,x4,A,B,A2,B2,A3,B3,A4,B4,A5,B5,x0_5pl,dx_5pl):
     
     if type(x)==int:
-        xlo=1 if x<x1 else 0 #below x1
+        xlo=((erf(((x-x0_5pl)/dx_5pl))+1)/2) if x<x1 else 0 #below x1
         xmid1=1  if (x>=x1 and x<=x2) else 0 #between x1 and x2
         xmid2=1  if (x>x2 and x<=x3) else 0 #between x2 and x3
         xmid3=1  if (x>x3 and x<=x4) else 0 #between x3 and x4
         xhi=1 if x>x4 else 0#above x4  
     else:
         x=np.array(x)
-        xlo=[ 1 if x_i<x1 else 0 for x_i in x] #below x1
+        xlo=[ ((erf(((x_i-x0_5pl)/dx_5pl))+1)/2) if x_i<x1 else 0 for x_i in x] #below x1
         xmid1 =[ 1 if (x_i>=x1 and x_i<=x2) else 0 for x_i in x] #between x1 and x2
         xmid2 =[ 1 if (x_i>x2 and x_i<=x3) else 0 for x_i in x] #between x2 and x3
         xmid3 =[ 1 if (x_i>x3 and x_i<=x4) else 0 for x_i in x] #between x3 and x4
@@ -609,7 +610,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             B=parvals["B"]
             A2=parvals["A2"]
             B2=parvals["B2"]   
-            y+=broken_power_law(x,x1,A,B,A2,B2)
+            x0_bpl=parvals["x0_bpl"]
+            dx_bpl=parvals["dx_bpl"]   
+            y+=broken_power_law(x,x1,A,B,A2,B2,x0_bpl,dx_bpl)
         
         
         
@@ -628,7 +631,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         if header[56]=='1': #ie if single power law is present
             A_sing=parvals["A_sing"]
             B_sing=parvals["B_sing"]
-            y+=power_func(x, A_sing, B_sing)
+            x0_sing=parvals["x0_sing"]
+            dx_sing=parvals["dx_sing"]   
+            y+=power_func(x, A_sing, B_sing,x0_sing,dx_sing)
             
         if header[70]=='1': #ie if kappa func is present
             A_k=parvals["A_k"]
@@ -669,8 +674,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             B2_tpl=parvals["B2_tpl"]   
             A3_tpl=parvals["A3_tpl"]
             B3_tpl=parvals["B3_tpl"] 
-            y+=triple_power_law(x,x1_tpl,x2_tpl,A_tpl,B_tpl,A2_tpl,B2_tpl,A3_tpl,B3_tpl)
-            
+            x0_tpl=parvals["x0_tpl"]
+            dx_tpl=parvals["dx_tpl"]   
+            y+=triple_power_law(x,x1_tpl,x2_tpl,A_tpl,B_tpl,A2_tpl,B2_tpl,A3_tpl,B3_tpl,x0_tpl,dx_tpl)
             
         if header[142]=='1':# ie if the quad power law is present
             
@@ -685,7 +691,10 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             B3_qpl=parvals["B3_qpl"] 
             A4_qpl=parvals["A4_qpl"]
             B4_qpl=parvals["B4_qpl"]
-            y+=quad_power_law(x,x1_qpl,x2_qpl,x3_qpl,A_qpl,B_qpl,A2_qpl,B2_qpl,A3_qpl,B3_qpl,A4_qpl,B4_qpl)
+            x0_qpl=parvals["x0_qpl"]
+            dx_qpl=parvals["dx_qpl"]   
+            y+=quad_power_law(x,x1_qpl,x2_qpl,x3_qpl,A_qpl,B_qpl,A2_qpl,B2_qpl,A3_qpl,B3_qpl,A4_qpl,B4_qpl,x0_qpl,dx_qpl)
+            
         
         if header[159]=='1':# ie if the 5 power law is present
                 
@@ -703,7 +712,10 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                 B4_5pl=parvals["B4_5pl"]
                 A5_5pl=parvals["A5_5pl"]
                 B5_5pl=parvals["B5_5pl"]
-                y+=quint_power_law(x,x1_5pl,x2_5pl,x3_5pl,x4_5pl,A_5pl,B_5pl,A2_5pl,B2_5pl,A3_5pl,B3_5pl,A4_5pl,B4_5pl,A5_5pl,B5_5pl)
+                x0_5pl=parvals["x0_5pl"]
+                dx_5pl=parvals["dx_5pl"]   
+                y+=quint_power_law(x, x1_5pl, x2_5pl, x3_5pl, x4_5pl, A_5pl, B_5pl, A2_5pl, B2_5pl, A3_5pl, B3_5pl, A4_5pl, B4_5pl, A5_5pl, B5_5pl,x0_5pl,dx_5pl)
+            
     
         return y
     
@@ -725,9 +737,11 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
         params.add_many(('x1',init['x1'],vary['x1'],minval['x1'],maxval['x1'],None,None),
                        ('B',init['B'] ,vary['B'],minval['B'],maxval['B'],None,None), 
-                      ('B2',init['B2'],vary['B2'],minval['B2'],maxval['B2'],None,None),#this expression ensure continuity at spectral break
-                  ('A',init['A'],vary['A'],minval['A'],maxval['A'],None,None),
-                  ('A2',init['A2'] ,vary['A2'],minval['A2'],maxval['A2'],'A * x1**(B-B2)',None))#must add after A is defined
+                       ('B2',init['B2'],vary['B2'],minval['B2'],maxval['B2'],None,None),#this expression ensure continuity at spectral break
+                       ('A',init['A'],vary['A'],minval['A'],maxval['A'],None,None),
+                       ('A2',init['A2'] ,vary['A2'],minval['A2'],maxval['A2'],'A * x1**(B-B2)',None),#must add after A is defined
+                       ('x0_bpl',init['x0_bpl'] ,vary['x0_bpl'],minval['x0_bpl'],maxval['x0_bpl'],None,None),
+                       ('dx_bpl',init['dx_bpl'] ,vary['dx_bpl'],minval['dx_bpl'],maxval['dx_bpl'],None,None))
     
     
     if header[42]=='1': #ie if gaussian is present
@@ -737,7 +751,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     if header[56]=='1':#ie if the power law is present
         params.add_many(('A_sing',init['A_sing'],vary['A_sing'],minval['A_sing'],maxval['A_sing'],None,None),
-                    ('B_sing',init['B_sing'] ,vary['B_sing'],minval['B_sing'],maxval['B_sing'],None,None))
+                        ('B_sing',init['B_sing'] ,vary['B_sing'],minval['B_sing'],maxval['B_sing'],None,None),
+                        ('x0_sing',init['x0_sing'] ,vary['x0_sing'],minval['x0_sing'],maxval['x0_sing'],None,None),
+                        ('dx_sing',init['dx_sing'] ,vary['dx_sing'],minval['dx_sing'],maxval['dx_sing'],None,None))
 
     if header[70]=='1':#ie if the kappa func is present
         params.add_many(
@@ -775,8 +791,10 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                       ('B3_tpl',init['B3_tpl'],vary['B3_tpl'],minval['B3_tpl'],maxval['B3_tpl'],None,None),
                   ('A_tpl',init['A_tpl'],vary['A_tpl'],minval['A_tpl'],maxval['A_tpl'],None,None),
                   ('A2_tpl',init['A2_tpl'] ,vary['A2_tpl'],minval['A2_tpl'],maxval['A2_tpl'],'A_tpl * x1_tpl**(B_tpl-B2_tpl)',None),
-                  ('A3_tpl',init['A3_tpl'] ,vary['A3_tpl'],minval['A3_tpl'],maxval['A3_tpl'],'A2_tpl * x2_tpl**(B2_tpl-B3_tpl)',None))#must add after A_tpl is defined
-        
+                  ('A3_tpl',init['A3_tpl'] ,vary['A3_tpl'],minval['A3_tpl'],maxval['A3_tpl'],'A2_tpl * x2_tpl**(B2_tpl-B3_tpl)',None),#must add after A_tpl is defined
+                  ('x0_tpl',init['x0_tpl'] ,vary['x0_tpl'],minval['x0_tpl'],maxval['x0_tpl'],None,None),
+                  ('dx_tpl',init['dx_tpl'] ,vary['dx_tpl'],minval['dx_tpl'],maxval['dx_tpl'],None,None))
+    
     if header[142]=='1':# ie if the quad power law is present
     
         params.add_many(('x1_qpl',init['x1_qpl'],vary['x1_qpl'],minval['x1_qpl'],maxval['x1_qpl'],None,None),
@@ -789,8 +807,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                   ('A_qpl',init['A_qpl'],vary['A_qpl'],minval['A_qpl'],maxval['A_qpl'],None,None),
                   ('A2_qpl',init['A2_qpl'] ,vary['A2_qpl'],minval['A2_qpl'],maxval['A2_qpl'],'A_qpl * x1_qpl**(B_qpl-B2_qpl)',None),
                   ('A3_qpl',init['A3_qpl'] ,vary['A3_qpl'],minval['A3_qpl'],maxval['A3_qpl'],'A2_qpl * x2_qpl**(B2_qpl-B3_qpl)',None),
-                  ('A4_qpl',init['A4_qpl'] ,vary['A4_qpl'],minval['A4_qpl'],maxval['A4_qpl'],'A3_qpl * x3_qpl**(B3_qpl-B4_qpl)',None))#must add after A_qpl is defined
-        
+                  ('A4_qpl',init['A4_qpl'] ,vary['A4_qpl'],minval['A4_qpl'],maxval['A4_qpl'],'A3_qpl * x3_qpl**(B3_qpl-B4_qpl)',None),#must add after A_qpl is defined
+                  ('x0_qpl',init['x0_qpl'] ,vary['x0_qpl'],minval['x0_qpl'],maxval['x0_qpl'],None,None),
+                  ('dx_qpl',init['dx_qpl'] ,vary['dx_qpl'],minval['dx_qpl'],maxval['dx_qpl'],None,None))
               
     if header[159]=='1':# ie if the quint power law is present
     
@@ -807,7 +826,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                   ('A2_5pl',init['A2_5pl'] ,vary['A2_5pl'],minval['A2_5pl'],maxval['A2_5pl'],'A_5pl * x1_5pl**(B_5pl-B2_5pl)',None),
                   ('A3_5pl',init['A3_5pl'] ,vary['A3_5pl'],minval['A3_5pl'],maxval['A3_5pl'],'A2_5pl * x2_5pl**(B2_5pl-B3_5pl)',None),
                   ('A4_5pl',init['A4_5pl'] ,vary['A4_5pl'],minval['A4_5pl'],maxval['A4_5pl'],'A3_5pl * x3_5pl**(B3_5pl-B4_5pl)',None),
-                  ('A5_5pl',init['A5_5pl'] ,vary['A5_5pl'],minval['A5_5pl'],maxval['A5_5pl'],'A4_5pl * x4_5pl**(B4_5pl-B5_5pl)',None))#must add after A_5pl is defined
+                  ('A5_5pl',init['A5_5pl'] ,vary['A5_5pl'],minval['A5_5pl'],maxval['A5_5pl'],'A4_5pl * x4_5pl**(B4_5pl-B5_5pl)',None),#must add after A_5pl is defined
+                  ('x0_5pl',init['x0_5pl'] ,vary['x0_5pl'],minval['x0_5pl'],maxval['x0_5pl'],None,None),
+                  ('dx_5pl',init['dx_5pl'] ,vary['dx_5pl'],minval['dx_5pl'],maxval['dx_5pl'],None,None))
         
         
     
@@ -901,6 +922,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         B=parvals["B"]
         A2=parvals["A2"]
         B2=parvals["B2"]
+        x0_bpl=parvals["x0_bpl"]
+        dx_bpl=parvals["dx_bpl"]   
     
     if header[28]=='1':#ie if the therm func is present   
         amp=parvals["amp"]
@@ -915,6 +938,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     if header[56]=='1': #ie if power law is present
         A_sing=parvals["A_sing"]
         B_sing=parvals["B_sing"]
+        x0_sing=parvals["x0_sing"]
+        dx_sing=parvals["dx_sing"]  
     
     if header[70]=='1': #ie if kappa is present
 
@@ -952,6 +977,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         B2_tpl=parvals["B2_tpl"]   
         A3_tpl=parvals["A3_tpl"]
         B3_tpl=parvals["B3_tpl"] 
+        x0_tpl=parvals["x0_tpl"]
+        dx_tpl=parvals["dx_tpl"]   
    
     if header[142]=='1':# ie if the quad power law is present
         
@@ -966,6 +993,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         B3_qpl=parvals["B3_qpl"] 
         A4_qpl=parvals["A4_qpl"]
         B4_qpl=parvals["B4_qpl"]
+        x0_qpl=parvals["x0_qpl"]
+        dx_qpl=parvals["dx_qpl"]   
 
     if header[159]=='1':# ie if the quint power law is present
         
@@ -983,6 +1012,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         B4_5pl=parvals["B4_5pl"]
         A5_5pl=parvals["A5_5pl"]
         B5_5pl=parvals["B5_5pl"]
+        x0_5pl=parvals["x0_5pl"]
+        dx_5pl=parvals["dx_5pl"]   
 
     #print(B)
     
@@ -1079,7 +1110,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.plot(x_model,fit2, 'r', label='Thermal Law', linestyle='solid')
     
     if header[9]=='1':# ie if the bpl is present
-        xlo=[ 1 if x_i<x1 else 0 for x_i in x_model] #below x0
+        xlo=[ ((erf(((x_i-x0_bpl)/dx_bpl))+1)/2) if x_i<x1 else 0 for x_i in x_model] #below x0
         xhi=[ 1 if x_i>=x1 else 0 for x_i in x_model]#above x
         
         fit3=lin_func(x_model,A,B)*xlo
@@ -1095,7 +1126,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     
     if header[56]=='1': #ie if power law is present
-        fit6=power_func(x_model, A_sing, B_sing)
+        fit6=power_func(x_model, A_sing, B_sing,x0_sing,dx_sing)
         ax_fit.plot(x_model,fit6, 'm', label='Power Law',linestyle='dashed')
     
     if header[70]=='1': #ie if kappa function is present
@@ -1116,7 +1147,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.plot(x_model,fit11, 'r',  linestyle='dotted')
 
     if header[130]=='1':# ie if the tpl is present
-        xlo=[ 1 if x_i<x1_tpl else 0 for x_i in x_model] #below x1
+        xlo=[ ((erf(((x_i-x0_tpl)/dx_tpl))+1)/2) if x_i<x1_tpl else 0 for x_i in x_model] #below x1
         xmid =[ 1 if (x_i>=x1_tpl and x_i<=x2_tpl) else 0 for x_i in x_model] #between x1 and x2
         xhi=[ 1 if x_i>=x2_tpl else 0 for x_i in x_model]#above x2    
         
@@ -1131,7 +1162,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.scatter(x2_tpl,test_func(int(x2_tpl),parvals,header),zorder=100000,c='black')
         
     if header[142]=='1':# ie if the qpl is present
-        xlo=[ 1 if x_i<x1 else 0 for x_i in x_model] #below x1
+        xlo=[ ((erf(((x_i-x0_qpl)/dx_qpl))+1)/2) if x_i<x1 else 0 for x_i in x_model] #below x1
         xmid1 =[ 1 if (x_i>=x1_qpl and x_i<=x2_qpl) else 0 for x_i in x_model] #between x1 and x2
         xmid2 =[ 1 if (x_i>x2_qpl and x_i<=x3_qpl) else 0 for x_i in x_model] #between x2 and x3
         xhi=[ 1 if x_i>x3_qpl else 0 for x_i in x_model]#above x3    
@@ -1150,7 +1181,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.scatter(x3_qpl,test_func(int(x3_qpl),parvals,header),zorder=100000,c='black')
 
     if header[159]=='1':# ie if the 5pl is present
-        xlo=[ 1 if x_i<x1_5pl else 0 for x_i in x_model] #below x1
+        xlo=[ ((erf(((x_i-x0_5pl)/dx_5pl))+1)/2) if x_i<x1_5pl else 0 for x_i in x_model] #below x1
         xmid1 =[ 1 if (x_i>=x1_5pl and x_i<=x2_5pl) else 0 for x_i in x_model] #between x1 and x2
         xmid2 =[ 1 if (x_i>x2_5pl and x_i<=x3_5pl) else 0 for x_i in x_model] #between x2 and x3
         xmid3 =[ 1 if (x_i>x3_5pl and x_i<=x4_5pl) else 0 for x_i in x_model] #between x3 and x4
@@ -1246,6 +1277,8 @@ def param_preview(x_data,y_data,parvals,header):
         B=parvals["B"]
         A2=parvals["A2"]
         B2=parvals["B2"]   
+        x0_bpl=parvals["x0_bpl"]
+        dx_bpl=parvals["dx_bpl"]
 
         
     
@@ -1266,6 +1299,8 @@ def param_preview(x_data,y_data,parvals,header):
     if header[56]=='1': #ie if single power law is present
         A_sing=parvals["A_sing"]
         B_sing=parvals["B_sing"]
+        x0_sing=parvals["x0_sing"]
+        dx_sing=parvals["dx_sing"]
 
         
         
@@ -1303,6 +1338,8 @@ def param_preview(x_data,y_data,parvals,header):
         B2_tpl=parvals["B2_tpl"]   
         A3_tpl=parvals["A3_tpl"]
         B3_tpl=parvals["B3_tpl"] 
+        x0_tpl=parvals["x0_tpl"]
+        dx_tpl=parvals["dx_tpl"]
  
     if header[142]=='1':# ie if the quad power law is present
         
@@ -1317,6 +1354,8 @@ def param_preview(x_data,y_data,parvals,header):
         B3_qpl=parvals["B3_qpl"] 
         A4_qpl=parvals["A4_qpl"]
         B4_qpl=parvals["B4_qpl"]
+        x0_qpl=parvals["x0_qpl"]
+        dx_qpl=parvals["dx_qpl"]
         
     if header[159]=='1':# ie if the quint power law is present
         
@@ -1334,6 +1373,8 @@ def param_preview(x_data,y_data,parvals,header):
         B4_5pl=parvals["B4_5pl"]
         A5_5pl=parvals["A5_5pl"]
         B5_5pl=parvals["B5_5pl"]
+        x0_5pl=parvals["x0_5pl"]
+        dx_5pl=parvals["dx_5pl"]
         
     global test_func
     def test_func(x,parvals,header): # this function is the one we are trying to fit to the data
@@ -1353,7 +1394,9 @@ def param_preview(x_data,y_data,parvals,header):
             B=parvals["B"]
             A2=parvals["A2"]
             B2=parvals["B2"]   
-            y+=broken_power_law(x,x1,A,B,A2,B2)
+            x0_bpl=parvals["x0_bpl"]
+            dx_bpl=parvals["dx_bpl"]   
+            y+=broken_power_law(x,x1,A,B,A2,B2,x0_bpl,dx_bpl)
         
         
         
@@ -1372,7 +1415,9 @@ def param_preview(x_data,y_data,parvals,header):
         if header[56]=='1': #ie if single power law is present
             A_sing=parvals["A_sing"]
             B_sing=parvals["B_sing"]
-            y+=power_func(x, A_sing, B_sing)
+            x0_sing=parvals["x0_sing"]
+            dx_sing=parvals["dx_sing"]   
+            y+=power_func(x, A_sing, B_sing,x0_sing,dx_sing)
             
         if header[70]=='1': #ie if kappa is present
             A_k=parvals["A_k"]
@@ -1415,7 +1460,9 @@ def param_preview(x_data,y_data,parvals,header):
             B2_tpl=parvals["B2_tpl"]   
             A3_tpl=parvals["A3_tpl"]
             B3_tpl=parvals["B3_tpl"] 
-            y+=triple_power_law(x,x1_tpl,x2_tpl,A_tpl,B_tpl,A2_tpl,B2_tpl,A3_tpl,B3_tpl)
+            x0_tpl=parvals["x0_tpl"]
+            dx_tpl=parvals["dx_tpl"]   
+            y+=triple_power_law(x,x1_tpl,x2_tpl,A_tpl,B_tpl,A2_tpl,B2_tpl,A3_tpl,B3_tpl,x0_tpl,dx_tpl)
         
         
         if header[142]=='1':# ie if the quad power law is present
@@ -1431,7 +1478,9 @@ def param_preview(x_data,y_data,parvals,header):
             B3_qpl=parvals["B3_qpl"] 
             A4_qpl=parvals["A4_qpl"]
             B4_qpl=parvals["B4_qpl"]
-            y+=quad_power_law(x,x1_qpl,x2_qpl,x3_qpl,A_qpl,B_qpl,A2_qpl,B2_qpl,A3_qpl,B3_qpl,A4_qpl,B4_qpl)
+            x0_qpl=parvals["x0_qpl"]
+            dx_qpl=parvals["dx_qpl"]   
+            y+=quad_power_law(x,x1_qpl,x2_qpl,x3_qpl,A_qpl,B_qpl,A2_qpl,B2_qpl,A3_qpl,B3_qpl,A4_qpl,B4_qpl,x0_qpl,dx_qpl)
             
         if header[159]=='1':# ie if the quint power law is present
             
@@ -1449,7 +1498,9 @@ def param_preview(x_data,y_data,parvals,header):
             B4_5pl=parvals["B4_5pl"]
             A5_5pl=parvals["A5_5pl"]
             B5_5pl=parvals["B5_5pl"]
-            y+=quint_power_law(x, x1_5pl, x2_5pl, x3_5pl, x4_5pl, A_5pl, B_5pl, A2_5pl, B2_5pl, A3_5pl, B3_5pl, A4_5pl, B4_5pl, A5_5pl, B5_5pl)
+            x0_5pl=parvals["x0_5pl"]
+            dx_5pl=parvals["dx_5pl"]   
+            y+=quint_power_law(x, x1_5pl, x2_5pl, x3_5pl, x4_5pl, A_5pl, B_5pl, A2_5pl, B2_5pl, A3_5pl, B3_5pl, A4_5pl, B4_5pl, A5_5pl, B5_5pl,x0_5pl,dx_5pl)
             
         return y
     #print(header)
@@ -1480,7 +1531,7 @@ def param_preview(x_data,y_data,parvals,header):
         ax_fit.plot(x_model,fit2, 'r', label='Thermal Law', linestyle='solid')
     
     if header[9]=='1':# ie if the bpl is present
-        xlo=[ 1 if x_i<x1 else 0 for x_i in x_model] #below x0
+        xlo=[ ((erf(((x_i-x0_bpl)/dx_bpl))+1)/2) if x_i<x1 else 0 for x_i in x_model] #below x0
         xhi=[ 1 if x_i>=x1 else 0 for x_i in x_model]#above x
         fit3=lin_func(x_model,A,B)*xlo
         fit4=lin_func2(x_model,A2,B2)*xhi
@@ -1496,7 +1547,7 @@ def param_preview(x_data,y_data,parvals,header):
     
     
     if header[56]=='1': #ie if power law is present
-        fit6=power_func(x_model, A_sing, B_sing)
+        fit6=power_func(x_model, A_sing, B_sing,x0_sing,dx_sing)
         ax_fit.plot(x_model,fit6, 'm', label='Power Law',linestyle='dashed')
     
     if header[70]=='1': #ie if kappa function is present
@@ -1514,7 +1565,7 @@ def param_preview(x_data,y_data,parvals,header):
         ax_fit.plot(x_model,fit10, 'r', label='Thermal Law 2', linestyle='solid')
         
     if header[130]=='1':# ie if the tpl is present
-        xlo=[ 1 if x_i<x1_tpl else 0 for x_i in x_model] #below x1
+        xlo=[ ((erf(((x_i-x0_tpl)/dx_tpl))+1)/2) if x_i<x1_tpl else 0 for x_i in x_model] #below x1
         xmid =[ 1 if (x_i>=x1_tpl and x_i<=x2_tpl) else 0 for x_i in x_model] #between x1 and x2
         xhi=[ 1 if x_i>=x2_tpl else 0 for x_i in x_model]#above x2    
         
@@ -1530,7 +1581,7 @@ def param_preview(x_data,y_data,parvals,header):
       
         
     if header[142]=='1':# ie if the qpl is present
-        xlo=[ 1 if x_i<x1_qpl else 0 for x_i in x_model] #below x1
+        xlo=[ ((erf(((x_i-x0_qpl)/dx_qpl))+1)/2) if x_i<x1_qpl else 0 for x_i in x_model] #below x1
         xmid1 =[ 1 if (x_i>=x1_qpl and x_i<x2_qpl) else 0 for x_i in x_model] #between x1 and x2
         xmid2 =[ 1 if (x_i>=x2_qpl and x_i<x3_qpl) else 0 for x_i in x_model] #between x2 and x3
         xhi=[ 1 if x_i>=x3_qpl else 0 for x_i in x_model]#above x3    
@@ -1550,7 +1601,7 @@ def param_preview(x_data,y_data,parvals,header):
         
         
     if header[159]=='1':# ie if the 5pl is present
-        xlo=[ 1 if x_i<x1_5pl else 0 for x_i in x_model] #below x1
+        xlo=[ ((erf(((x_i-x0_5pl)/dx_5pl))+1)/2) if x_i<x1_5pl else 0 for x_i in x_model] #below x1
         xmid1 =[ 1 if (x_i>=x1_5pl and x_i<=x2_5pl) else 0 for x_i in x_model] #between x1 and x2
         xmid2 =[ 1 if (x_i>x2_5pl and x_i<=x3_5pl) else 0 for x_i in x_model] #between x2 and x3
         xmid3 =[ 1 if (x_i>x3_5pl and x_i<=x4_5pl) else 0 for x_i in x_model] #between x3 and x4
@@ -1615,6 +1666,8 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
             save_pars['B2']=None if init_B2_entry.get()=='None' else float(init_B2_entry.get())
             save_pars['B']=None if init_B_entry.get()=='None' else float(init_B_entry.get())
             save_pars['A']=None if init_A_entry.get()=='None' else float(init_A_entry.get())
+            save_pars['x0_bpl']=None if init_x0_bpl_entry.get()=='None' else float(init_x0_bpl_entry.get())
+            save_pars['dx_bpl']=None if init_dx_bpl_entry.get()=='None' else float(init_dx_bpl_entry.get())
 
         if gauss_pres==1:#if gaussian function present, save parameter options from the gui for that function
             save_pars['gauss_centre']=None if init_gauss_centre_entry.get()=='None' else float(init_gauss_centre_entry.get())
@@ -1624,6 +1677,8 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
         if power_pres==1:#if single power law function present, save parameter options from the gui for that function
            save_pars['B_sing']=None if init_B_sing_entry.get()=='None' else float(init_B_sing_entry.get())
            save_pars['A_sing']=None if init_A_sing_entry.get()=='None' else float(init_A_sing_entry.get())
+           save_pars['x0_sing']=None if init_x0_sing_entry.get()=='None' else float(init_x0_sing_entry.get())
+           save_pars['dx_sing']=None if init_dx_sing_entry.get()=='None' else float(init_dx_sing_entry.get())
            
 
            
@@ -1672,6 +1727,8 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
             save_pars['A_tpl']=None if init_A_tpl_entry.get()=='None' else float(init_A_tpl_entry.get())
             save_pars['A3_tpl']=None if init_A3_tpl_entry.get()=='None' else float(init_A3_tpl_entry.get())            
             save_pars['B3_tpl']=None if init_B3_tpl_entry.get()=='None' else float(init_B3_tpl_entry.get())
+            save_pars['x0_tpl']=None if init_x0_tpl_entry.get()=='None' else float(init_x0_tpl_entry.get())
+            save_pars['dx_tpl']=None if init_dx_tpl_entry.get()=='None' else float(init_dx_tpl_entry.get())
             
         if qpl_pres==1:#if qpl function present, save parameter options from the gui for that function
             save_pars['x1_qpl']=None if init_x1_qpl_entry.get()=='None' else float(init_x1_qpl_entry.get())
@@ -1685,6 +1742,8 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
             save_pars['B3_qpl']=None if init_B3_qpl_entry.get()=='None' else float(init_B3_qpl_entry.get())
             save_pars['A4_qpl']=None if init_A4_qpl_entry.get()=='None' else float(init_A4_qpl_entry.get())
             save_pars['B4_qpl']=None if init_B4_qpl_entry.get()=='None' else float(init_B4_qpl_entry.get())
+            save_pars['x0_qpl']=None if init_x0_qpl_entry.get()=='None' else float(init_x0_qpl_entry.get())
+            save_pars['dx_qpl']=None if init_dx_qpl_entry.get()=='None' else float(init_dx_qpl_entry.get())
             
         if quint_pl_pres==1:#if 5pl function present, save parameter options from the gui for that function
             save_pars['x1_5pl']=None if init_x1_5pl_entry.get()=='None' else float(init_x1_5pl_entry.get())
@@ -1701,6 +1760,8 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
             save_pars['B4_5pl']=None if init_B4_5pl_entry.get()=='None' else float(init_B4_5pl_entry.get())            
             save_pars['A5_5pl']=None if init_A5_5pl_entry.get()=='None' else float(init_A5_5pl_entry.get())
             save_pars['B5_5pl']=None if init_B5_5pl_entry.get()=='None' else float(init_B5_5pl_entry.get())
+            save_pars['x0_5pl']=None if init_x0_5pl_entry.get()=='None' else float(init_x0_5pl_entry.get())
+            save_pars['dx_5pl']=None if init_dx_5pl_entry.get()=='None' else float(init_dx_5pl_entry.get())
             
     except ValueError as e:
            tk.messagebox.showerror("Invalid Input","Inputs should be floating point intergers")
@@ -1874,6 +1935,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B']=-1
             init['A2']=1e5
             init['B2']=-2    
+            init['x0_bpl']=1
+            init['dx_bpl']=1    
 
     
             global vary#define global if vary values for the params of the function
@@ -1883,7 +1946,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             vary['B']=True
             vary['A2']=True
             vary['B2']=True            
-
+            vary['x0_bpl']=True
+            vary['dx_bpl']=True
             
             global maxval##define global maximum values for the params of the function
 
@@ -1892,6 +1956,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['B']=0
             maxval['A2']=None
             maxval['B2']=0            
+            maxval['x0_bpl']=10
+            maxval['dx_bpl']=10
 
             
             global minval##define global minimum values for the params of the function
@@ -1901,6 +1967,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B']=-10
             minval['A2']=0
             minval['B2']=-10            
+            minval['x0_bpl']=0.1
+            minval['dx_bpl']=0.1
 
             global frame_bpl#defining gui section to handle bpl param options
             frame_bpl=tk.Frame(master=frame_params)
@@ -1913,12 +1981,16 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             def toggle_x1(): vary['x1'] = not vary['x1']
             def toggle_B(): vary['B'] = not vary['B']
             def toggle_B2(): vary['B2'] = not vary['B2']
+            def toggle_x0_bpl(): vary['x0_bpl'] = not vary['x0_bpl']
+            def toggle_dx_bpl(): vary['dx_bpl'] = not vary['dx_bpl']
 
             add_param_row(frame_bpl, 1, "x1", init['x1'], minval['x1'], maxval['x1'], vary['x1'], toggle_x1, "x1")
             add_param_row(frame_bpl, 2, "A", init['A'], minval['A'], maxval['A'], vary['A'], toggle_A, "A")           
             add_param_row(frame_bpl, 3, "B", init['B'], minval['B'], maxval['B'], vary['B'], toggle_B, "B")
             add_param_row(frame_bpl, 4, "A2", init['A2'], minval['A2'], maxval['A2'], vary['A2'], toggle_A2, "A2")
             add_param_row(frame_bpl, 5, "B2", init['B2'], minval['B2'], maxval['B2'], vary['B2'], toggle_B2, "B2")
+            add_param_row(frame_bpl, 6, "x0_bpl", init['x0_bpl'], minval['x0_bpl'], maxval['x0_bpl'], vary['x0_bpl'], toggle_x0_bpl, "x0_bpl")
+            add_param_row(frame_bpl, 7, "dx_bpl", init['dx_bpl'], minval['dx_bpl'], maxval['dx_bpl'], vary['dx_bpl'], toggle_dx_bpl, "dx_bpl")
 
             def hndl_remove_bpl_btn():
                 global bpl_pres
@@ -1926,10 +1998,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 bpl_pres = 0
 
             tk.Button(frame_bpl, text='Remove BPL component', command=hndl_remove_bpl_btn)\
-                .grid(row=6, column=0, columnspan=5, pady=10)
+                .grid(row=8, column=0, columnspan=5, pady=10)
 
             frame_bpl.grid(row=3, column=0, sticky="ew")
-            for i in range(6):
+            for i in range(8):
                 frame_bpl.grid_columnconfigure(i, weight=1)
             bpl_pres = 1
     
@@ -1991,18 +2063,26 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             global init#define global initial values for the params of the function
             init['A_sing']=1e9
             init['B_sing']=-1
+            init['x0_sing']=1
+            init['dx_sing']=1    
             
             global vary#define global if vary values for the params of the function
             vary['A_sing']=True
             vary['B_sing']=True
+            vary['x0_sing']=True
+            vary['dx_sing']=True
             
             global minval##define global minimum values for the params of the function
             minval['A_sing']=0
             minval['B_sing']=None
+            minval['x0_sing']=0.1
+            minval['dx_sing']=0.1
             
             global maxval##define global maximum values for the params of the function
             maxval['A_sing']=None
             maxval['B_sing']=0
+            maxval['x0_sing']=10
+            maxval['dx_sing']=10
             
             global frame_power
             frame_power=tk.Frame(master=frame_params)
@@ -2011,9 +2091,13 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 
             def toggle_A_sing(): vary['A_sing'] = not vary['A_sing']
             def toggle_B_sing(): vary['B_sing'] = not vary['B_sing']
+            def toggle_x0_sing(): vary['x0_sing'] = not vary['x0_sing']
+            def toggle_dx_sing(): vary['dx_sing'] = not vary['dx_sing']
 
             add_param_row(frame_power, 1, "A_sing", init['A_sing'], minval['A_sing'], maxval['A_sing'], vary['A_sing'], toggle_A_sing, "A_sing")
             add_param_row(frame_power, 2, "B_sing", init['B_sing'], minval['B_sing'], maxval['B_sing'], vary['B_sing'], toggle_B_sing, "B_sing")
+            add_param_row(frame_power, 3, "x0_sing", init['x0_sing'], minval['x0_sing'], maxval['x0_sing'], vary['x0_sing'], toggle_x0_sing, "x0_sing")
+            add_param_row(frame_power, 4, "dx_sing", init['dx_sing'], minval['dx_sing'], maxval['dx_sing'], vary['dx_sing'], toggle_dx_sing, "dx_sing")
 
             def hndl_remove_power_btn():
                 global power_pres
@@ -2021,10 +2105,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 power_pres = 0
 
             tk.Button(frame_power, text='Remove Power Law component', command=hndl_remove_power_btn)\
-                .grid(row=3, column=0, columnspan=5, pady=10)
+                .grid(row=5, column=0, columnspan=5, pady=10)
 
             frame_power.grid(row=5, column=0, sticky="ew")
-            for i in range(3):
+            for i in range(5):
                 frame_power.grid_columnconfigure(i, weight=1)
             power_pres = 1
             
@@ -2260,7 +2344,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B2_tpl']=-1    
             init['A3_tpl']=1e5
             init['B3_tpl']=-2   
-
+            init['x0_tpl']=1
+            init['dx_tpl']=1  
     
             global vary#define global if vary values for the params of the function
 
@@ -2272,6 +2357,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             vary['B2_tpl']=True            
             vary['A3_tpl']=True
             vary['B3_tpl']=True            
+            vary['x0_tpl']=True
+            vary['dx_tpl']=True
             
             global maxval##define global maximum values for the params of the function
 
@@ -2283,6 +2370,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['B2_tpl']=0            
             maxval['A3_tpl']=None
             maxval['B3_tpl']=0           
+            maxval['x0_tpl']=10
+            maxval['dx_tpl']=10
 
             
             global minval##define global minimum values for the params of the function
@@ -2295,6 +2384,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B2_tpl']=-10            
             minval['A3_tpl']=0
             minval['B3_tpl']=-10            
+            minval['x0_tpl']=0.1
+            minval['dx_tpl']=0.1
 
             global frame_tpl#defining gui section to handle tpl param options
             frame_tpl=tk.Frame(master=frame_params)
@@ -2312,6 +2403,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             def toggle_x2_tpl(): vary['x2_tpl'] = not vary['x2_tpl']
             def toggle_A3_tpl(): vary['A3_tpl'] = not vary['A3_tpl']
             def toggle_B3_tpl(): vary['B3_tpl'] = not vary['B3_tpl']
+            
+            def toggle_x0_tpl(): vary['x0_tpl'] = not vary['x0_tpl']
+            def toggle_dx_tpl(): vary['dx_tpl'] = not vary['dx_tpl']
 
 
             add_param_row(frame_tpl, 1, "A_tpl", init['A_tpl'], minval['A_tpl'], maxval['A_tpl'], vary['A_tpl'], toggle_A_tpl, "A_tpl")
@@ -2322,7 +2416,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             add_param_row(frame_tpl, 6, "x2_tpl", init['x2_tpl'], minval['x2_tpl'], maxval['x2_tpl'], vary['x2_tpl'], toggle_x2_tpl, "x2_tpl")
             add_param_row(frame_tpl, 7, "A3_tpl", init['A3_tpl'], minval['A3_tpl'], maxval['A3_tpl'], vary['A3_tpl'], toggle_A3_tpl, "A3_tpl")
             add_param_row(frame_tpl, 8, "B3_tpl", init['B3_tpl'], minval['B3_tpl'], maxval['B3_tpl'], vary['B3_tpl'], toggle_B3_tpl, "B3_tpl")
-      
+            add_param_row(frame_tpl, 8, "x0_tpl", init['x0_tpl'], minval['x0_tpl'], maxval['x0_tpl'], vary['x0_tpl'], toggle_x0_tpl, "x0_tpl")
+            add_param_row(frame_tpl, 9, "dx_tpl", init['dx_tpl'], minval['dx_tpl'], maxval['dx_tpl'], vary['dx_tpl'], toggle_dx_tpl, "dx_tpl")
+
             
 
             def hndl_remove_tpl_btn():
@@ -2331,10 +2427,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 tpl_pres = 0
 
             tk.Button(frame_tpl, text='Remove TPL component', command=hndl_remove_tpl_btn)\
-                .grid(row=9, column=0, columnspan=5, pady=10)
+                .grid(row=10, column=0, columnspan=5, pady=10)
 
             frame_tpl.grid(row=9, column=0, sticky="ew")
-            for i in range(9):
+            for i in range(10):
                 frame_tpl.grid_columnconfigure(i, weight=1)
             tpl_pres = 1
     
@@ -2356,6 +2452,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B3_qpl']=-1   
             init['A4_qpl']=1e9
             init['B4_qpl']=-2 
+            init['x0_qpl']=1
+            init['dx_qpl']=1    
     
             global vary#define global if vary values for the params of the function
 
@@ -2370,6 +2468,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             vary['B3_qpl']=True
             vary['A4_qpl']=True
             vary['B4_qpl']=True            
+            vary['x0_qpl']=True
+            vary['dx_qpl']=True
             
             global maxval##define global maximum values for the params of the function
 
@@ -2384,6 +2484,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['B3_qpl']=0           
             maxval['A4_qpl']=None
             maxval['B4_qpl']=0           
+            maxval['x0_qpl']=10
+            maxval['dx_qpl']=10
             
             global minval##define global minimum values for the params of the function
 
@@ -2398,7 +2500,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B3_qpl']=-10
             minval['A4_qpl']=0
             minval['B4_qpl']=-10            
-
+            minval['x0_qpl']=0.1
+            minval['dx_qpl']=0.1
+            
             global frame_qpl#defining gui section to handle qpl param options
             frame_qpl=tk.Frame(master=frame_params)
             
@@ -2419,9 +2523,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             def toggle_x3_qpl(): vary['x3_qpl'] = not vary['x3_qpl']
             def toggle_A4_qpl(): vary['A4_qpl'] = not vary['A4_qpl']
             def toggle_B4_qpl(): vary['B4_qpl'] = not vary['B4_qpl']
-            
-            
-            
+            def toggle_x0_qpl(): vary['x0_qpl'] = not vary['x0_qpl']
+            def toggle_dx_qpl(): vary['dx_qpl'] = not vary['dx_qpl']            
 
             
 
@@ -2441,7 +2544,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             add_param_row(frame_qpl, 10, "A4_qpl", init['A4_qpl'], minval['A4_qpl'], maxval['A4_qpl'], vary['A4_qpl'], toggle_A4_qpl, "A4_qpl")
             add_param_row(frame_qpl, 11, "B4_qpl", init['B4_qpl'], minval['B4_qpl'], maxval['B4_qpl'], vary['B4_qpl'], toggle_B4_qpl, "B4_qpl")
             
-         
+            add_param_row(frame_qpl, 12, "x0_qpl", init['x0_qpl'], minval['x0_qpl'], maxval['x0_qpl'], vary['x0_qpl'], toggle_x0_qpl, "x0_qpl")
+            add_param_row(frame_qpl, 13, "dx_qpl", init['dx_qpl'], minval['dx_qpl'], maxval['dx_qpl'], vary['dx_qpl'], toggle_dx_qpl, "dx_qpl")
+
 
 
             def hndl_remove_qpl_btn():
@@ -2450,10 +2555,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 qpl_pres = 0
 
             tk.Button(frame_qpl, text='Remove QPL component', command=hndl_remove_qpl_btn)\
-                .grid(row=12, column=0, columnspan=5, pady=10)
+                .grid(row=14, column=0, columnspan=5, pady=10)
 
             frame_qpl.grid(row=10, column=0, sticky="ew")
-            for i in range(12):
+            for i in range(14):
                 frame_qpl.grid_columnconfigure(i, weight=1)
             qpl_pres = 1
     
@@ -2477,6 +2582,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B4_5pl']=-2 
             init['A5_5pl']=1e9
             init['B5_5pl']=-2 
+            init['x0_5pl']=1
+            init['dx_5pl']=1    
     
             global vary#define global if vary values for the params of the function
 
@@ -2494,6 +2601,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             vary['B4_5pl']=True
             vary['A5_5pl']=True
             vary['B5_5pl']=True            
+            vary['x0_5pl']=True
+            vary['dx_5pl']=True
             
             global maxval##define global maximum values for the params of the function
 
@@ -2511,6 +2620,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['B4_5pl']=0     
             maxval['A5_5pl']=None
             maxval['B5_5pl']=0 
+            maxval['x0_5pl']=10
+            maxval['dx_5pl']=10
             
             global minval##define global minimum values for the params of the function
 
@@ -2528,6 +2639,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B4_5pl']=-10
             minval['A5_5pl']=0
             minval['B5_5pl']=-10            
+            minval['x0_5pl']=0.1
+            minval['dx_5pl']=0.1
 
             global frame_quint_pl#defining gui section to handle quint_pl param options
             frame_quint_pl=tk.Frame(master=frame_params)
@@ -2539,7 +2652,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 vary[var] = not vary[var]
 
             row_counter = 1
-            for name in ["A_5pl", "B_5pl","x1_5pl","A2_5pl", "B2_5pl","x2_5pl", "A3_5pl","B3_5pl","x3_5pl","A4_5pl", "B4_5pl", "x4_5pl","A5_5pl", "B5_5pl"]:
+            for name in ["A_5pl", "B_5pl","x1_5pl","A2_5pl", "B2_5pl","x2_5pl", "A3_5pl","B3_5pl","x3_5pl","A4_5pl", "B4_5pl", "x4_5pl","A5_5pl", "B5_5pl",'x0_5pl','dx_5pl']:
                 add_param_row(
                     frame_quint_pl,
                     row_counter,
@@ -2729,6 +2842,16 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 minval['A']=None if minval_A_entry.get()=='None' else float(minval_A_entry.get())
                 maxval['A']=None if maxval_A_entry.get()=='None' else float(maxval_A_entry.get())
                 
+                
+                init['x0_bpl']=None if init_x0_bpl_entry.get()=='None' else float(init_x0_bpl_entry.get())
+                minval['x0_bpl']=None if minval_x0_bpl_entry.get()=='None' else float(minval_x0_bpl_entry.get())
+                maxval['x0_bpl']=None if maxval_x0_bpl_entry.get()=='None' else float( maxval_x0_bpl_entry.get())
+    
+    
+                init['dx_bpl']=None if init_dx_bpl_entry.get()=='None' else float(init_dx_bpl_entry.get())
+                minval['dx_bpl']=None if minval_dx_bpl_entry.get()=='None' else float(minval_dx_bpl_entry.get())
+                maxval['dx_bpl']=None if maxval_dx_bpl_entry.get()=='None' else float(maxval_dx_bpl_entry.get())
+                
             if gauss_pres==1:#if gaussian function present, save parameter options from the gui for that function
                 init['gauss_centre']=None if init_gauss_centre_entry.get()=='None' else float(init_gauss_centre_entry.get())
                 minval['gauss_centre']=None if minval_gauss_centre_entry.get()=='None' else float(minval_gauss_centre_entry.get())
@@ -2749,38 +2872,46 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                
                
             if power_pres==1:#if single power law function present, save parameter options from the gui for that function
-               init['B_sing']=None if init_B_sing_entry.get()=='None' else float(init_B_sing_entry.get())
-               minval['B_sing']=None if minval_B_sing_entry.get()=='None' else float(minval_B_sing_entry.get())
-               maxval['B_sing']=None if maxval_B_sing_entry.get()=='None' else float( maxval_B_sing_entry.get())
+                init['B_sing']=None if init_B_sing_entry.get()=='None' else float(init_B_sing_entry.get())
+                minval['B_sing']=None if minval_B_sing_entry.get()=='None' else float(minval_B_sing_entry.get())
+                maxval['B_sing']=None if maxval_B_sing_entry.get()=='None' else float( maxval_B_sing_entry.get())
     
     
-               init['A_sing']=None if init_A_sing_entry.get()=='None' else float(init_A_sing_entry.get())
-               minval['A_sing']=None if minval_A_sing_entry.get()=='None' else float(minval_A_sing_entry.get())
-               maxval['A_sing']=None if maxval_A_sing_entry.get()=='None' else float(maxval_A_sing_entry.get())
+                init['A_sing']=None if init_A_sing_entry.get()=='None' else float(init_A_sing_entry.get())
+                minval['A_sing']=None if minval_A_sing_entry.get()=='None' else float(minval_A_sing_entry.get())
+                maxval['A_sing']=None if maxval_A_sing_entry.get()=='None' else float(maxval_A_sing_entry.get())
                
+                init['x0_sing']=None if init_x0_sing_entry.get()=='None' else float(init_x0_sing_entry.get())
+                minval['x0_sing']=None if minval_x0_sing_entry.get()=='None' else float(minval_x0_sing_entry.get())
+                maxval['x0_sing']=None if maxval_x0_sing_entry.get()=='None' else float( maxval_x0_sing_entry.get())
+    
+    
+                init['dx_sing']=None if init_dx_sing_entry.get()=='None' else float(init_dx_sing_entry.get())
+                minval['dx_sing']=None if minval_dx_sing_entry.get()=='None' else float(minval_dx_sing_entry.get())
+                maxval['dx_sing']=None if maxval_dx_sing_entry.get()=='None' else float(maxval_dx_sing_entry.get())
 
                
             if kappa_pres==1:#if kappa function present, save parameter options from the gui for that function
    
-               init['A_k']=None if init_A_k_entry.get()=='None' else float(init_A_k_entry.get())
-               minval['A_k']=None if minval_A_k_entry.get()=='None' else float(minval_A_k_entry.get())
-               maxval['A_k']=None if maxval_A_k_entry.get()=='None' else float(maxval_A_k_entry.get())
-               
-               init['T_k']=None if init_T_k_entry.get()=='None' else float(init_T_k_entry.get())
-               minval['T_k']=None if minval_T_k_entry.get()=='None' else float(minval_T_k_entry.get())
-               maxval['T_k']=None if maxval_T_k_entry.get()=='None' else float( maxval_T_k_entry.get())
-               
-               init['m_i']=None if init_m_i_entry.get()=='None' else float(init_m_i_entry.get())
-               minval['m_i']=None if minval_m_i_entry.get()=='None' else float(minval_m_i_entry.get())
-               maxval['m_i']=None if maxval_m_i_entry.get()=='None' else float( maxval_m_i_entry.get())
-               
-               init['n_i']=None if init_n_i_entry.get()=='None' else float(init_n_i_entry.get())
-               minval['n_i']=None if minval_n_i_entry.get()=='None' else float(minval_n_i_entry.get())
-               maxval['n_i']=None if maxval_n_i_entry.get()=='None' else float( maxval_n_i_entry.get())    
- 
-               init['kappa']=None if init_kappa_entry.get()=='None' else float(init_kappa_entry.get())
-               minval['kappa']=None if minval_kappa_entry.get()=='None' else float(minval_kappa_entry.get())
-               maxval['kappa']=None if maxval_kappa_entry.get()=='None' else float( maxval_kappa_entry.get())
+                init['A_k']=None if init_A_k_entry.get()=='None' else float(init_A_k_entry.get())
+                minval['A_k']=None if minval_A_k_entry.get()=='None' else float(minval_A_k_entry.get())
+                maxval['A_k']=None if maxval_A_k_entry.get()=='None' else float(maxval_A_k_entry.get())
+                
+                init['T_k']=None if init_T_k_entry.get()=='None' else float(init_T_k_entry.get())
+                minval['T_k']=None if minval_T_k_entry.get()=='None' else float(minval_T_k_entry.get())
+                maxval['T_k']=None if maxval_T_k_entry.get()=='None' else float( maxval_T_k_entry.get())
+                
+                init['m_i']=None if init_m_i_entry.get()=='None' else float(init_m_i_entry.get())
+                minval['m_i']=None if minval_m_i_entry.get()=='None' else float(minval_m_i_entry.get())
+                maxval['m_i']=None if maxval_m_i_entry.get()=='None' else float( maxval_m_i_entry.get())
+                
+                init['n_i']=None if init_n_i_entry.get()=='None' else float(init_n_i_entry.get())
+                minval['n_i']=None if minval_n_i_entry.get()=='None' else float(minval_n_i_entry.get())
+                maxval['n_i']=None if maxval_n_i_entry.get()=='None' else float( maxval_n_i_entry.get())    
+  
+                init['kappa']=None if init_kappa_entry.get()=='None' else float(init_kappa_entry.get())
+                minval['kappa']=None if minval_kappa_entry.get()=='None' else float(minval_kappa_entry.get())
+                maxval['kappa']=None if maxval_kappa_entry.get()=='None' else float( maxval_kappa_entry.get())
                
                
             if bpl_and_therm_pres==1:
@@ -2880,6 +3011,15 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 init['B3_tpl']=None if init_B3_tpl_entry.get()=='None' else float(init_B3_tpl_entry.get())
                 minval['B3_tpl']=None if minval_B3_tpl_entry.get()=='None' else float(minval_B3_tpl_entry.get())
                 maxval['B3_tpl']=None if maxval_B3_tpl_entry.get()=='None' else float(maxval_B3_tpl_entry.get())
+                
+                init['x0_tpl']=None if init_x0_tpl_entry.get()=='None' else float(init_x0_tpl_entry.get())
+                minval['x0_tpl']=None if minval_x0_tpl_entry.get()=='None' else float(minval_x0_tpl_entry.get())
+                maxval['x0_tpl']=None if maxval_x0_tpl_entry.get()=='None' else float( maxval_x0_tpl_entry.get())
+    
+    
+                init['dx_tpl']=None if init_dx_tpl_entry.get()=='None' else float(init_dx_tpl_entry.get())
+                minval['dx_tpl']=None if minval_dx_tpl_entry.get()=='None' else float(minval_dx_tpl_entry.get())
+                maxval['dx_tpl']=None if maxval_dx_tpl_entry.get()=='None' else float(maxval_dx_tpl_entry.get())
             
             if qpl_pres==1:#if qpl function present, save parameter options from the gui for that function
                 init['x1_qpl']=None if init_x1_qpl_entry.get()=='None' else float(init_x1_qpl_entry.get())
@@ -2930,6 +3070,15 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 init['B4_qpl']=None if init_B4_qpl_entry.get()=='None' else float(init_B4_qpl_entry.get())
                 minval['B4_qpl']=None if minval_B4_qpl_entry.get()=='None' else float(minval_B4_qpl_entry.get())
                 maxval['B4_qpl']=None if maxval_B4_qpl_entry.get()=='None' else float(maxval_B4_qpl_entry.get())
+                
+                init['x0_qpl']=None if init_x0_qpl_entry.get()=='None' else float(init_x0_qpl_entry.get())
+                minval['x0_qpl']=None if minval_x0_qpl_entry.get()=='None' else float(minval_x0_qpl_entry.get())
+                maxval['x0_qpl']=None if maxval_x0_qpl_entry.get()=='None' else float( maxval_x0_qpl_entry.get())
+    
+    
+                init['dx_qpl']=None if init_dx_qpl_entry.get()=='None' else float(init_dx_qpl_entry.get())
+                minval['dx_qpl']=None if minval_dx_qpl_entry.get()=='None' else float(minval_dx_qpl_entry.get())
+                maxval['dx_qpl']=None if maxval_dx_qpl_entry.get()=='None' else float(maxval_dx_qpl_entry.get())
                 
             if quint_pl_pres==1:#if 5pl function present, save parameter options from the gui for that function
                 init['x1_5pl']=None if init_x1_5pl_entry.get()=='None' else float(init_x1_5pl_entry.get())
@@ -2993,6 +3142,14 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 minval['B5_5pl']=None if minval_B5_5pl_entry.get()=='None' else float(minval_B5_5pl_entry.get())
                 maxval['B5_5pl']=None if maxval_B5_5pl_entry.get()=='None' else float(maxval_B5_5pl_entry.get()) 
             
+                init['x0_5pl']=None if init_x0_5pl_entry.get()=='None' else float(init_x0_5pl_entry.get())
+                minval['x0_5pl']=None if minval_x0_5pl_entry.get()=='None' else float(minval_x0_5pl_entry.get())
+                maxval['x0_5pl']=None if maxval_x0_5pl_entry.get()=='None' else float( maxval_x0_5pl_entry.get())
+    
+    
+                init['dx_5pl']=None if init_dx_5pl_entry.get()=='None' else float(init_dx_5pl_entry.get())
+                minval['dx_5pl']=None if minval_dx_5pl_entry.get()=='None' else float(minval_dx_5pl_entry.get())
+                maxval['dx_5pl']=None if maxval_dx_5pl_entry.get()=='None' else float(maxval_dx_5pl_entry.get())
                 
             #pull the min/max energy (x) values to fit to
             global fitmin
@@ -3056,7 +3213,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                             init_A2_entry.insert(0,parvals["A2"])
                             init_B2_entry.delete(0, tk.END)
                             init_B2_entry.insert(0,parvals["B2"])
-
+                            init_x0_bpl_entry.delete(0, tk.END)
+                            init_x0_bpl_entry.insert(0,parvals["x0_bpl"])
+                            init_dx_bpl_entry.delete(0, tk.END)
+                            init_dx_bpl_entry.insert(0,parvals["dx_bpl"])
                             
                         if therm_func_pres==1:#if this function present, clear the initial values and replace with the newly fitted ones in the gui
                             init_amp_entry.delete(0, tk.END)
@@ -3080,7 +3240,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                             init_A_sing_entry.insert(0,parvals["A_sing"])
                             init_B_sing_entry.delete(0, tk.END)
                             init_B_sing_entry.insert(0,parvals["B_sing"])
-                            
+                            init_x0_sing_entry.delete(0, tk.END)
+                            init_x0_sing_entry.insert(0,parvals["x0_sing"])
+                            init_dx_sing_entry.delete(0, tk.END)
+                            init_dx_sing_entry.insert(0,parvals["dx_sing"])
                             
                         if kappa_pres==1:
                             
@@ -3147,7 +3310,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                             init_A3_tpl_entry.insert(0,parvals["A3_tpl"])
                             init_B3_tpl_entry.delete(0, tk.END)
                             init_B3_tpl_entry.insert(0,parvals["B3_tpl"])
-
+                            init_x0_tpl_entry.delete(0, tk.END)
+                            init_x0_tpl_entry.insert(0,parvals["x0_tpl"])
+                            init_dx_tpl_entry.delete(0, tk.END)
+                            init_dx_tpl_entry.insert(0,parvals["dx_tpl"])
 
                         if qpl_pres==1:#if this function present, clear the initial values and replace with the newly fitted ones in the gui
 
@@ -3173,6 +3339,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                             init_A4_qpl_entry.insert(0,parvals["A4_qpl"])
                             init_B4_qpl_entry.delete(0, tk.END)
                             init_B4_qpl_entry.insert(0,parvals["B4_qpl"])
+                            init_x0_qpl_entry.delete(0, tk.END)
+                            init_x0_qpl_entry.insert(0,parvals["x0_qpl"])
+                            init_dx_qpl_entry.delete(0, tk.END)
+                            init_dx_qpl_entry.insert(0,parvals["dx_qpl"])
                             
                         if quint_pl_pres==1:#if this function present, clear the initial values and replace with the newly fitted ones in the gui
 
@@ -3204,6 +3374,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                             init_A5_5pl_entry.insert(0,parvals["A5_5pl"])
                             init_B5_5pl_entry.delete(0, tk.END)
                             init_B5_5pl_entry.insert(0,parvals["B5_5pl"])
+                            init_x0_5pl_entry.delete(0, tk.END)
+                            init_x0_5pl_entry.insert(0,parvals["x0_5pl"])
+                            init_dx_5pl_entry.delete(0, tk.END)
+                            init_dx_5pl_entry.insert(0,parvals["dx_5pl"])
             
                         global parvals_new
                         parvals_new=parvals
@@ -3301,6 +3475,16 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 minval['A']=None if minval_A_entry.get()=='None' else float(minval_A_entry.get())
                 maxval['A']=None if maxval_A_entry.get()=='None' else float(maxval_A_entry.get())
                 
+                init['x0_bpl']=None if init_x0_bpl_entry.get()=='None' else float(init_x0_bpl_entry.get())
+                minval['x0_bpl']=None if minval_x0_bpl_entry.get()=='None' else float(minval_x0_bpl_entry.get())
+                maxval['x0_bpl']=None if maxval_x0_bpl_entry.get()=='None' else float( maxval_x0_bpl_entry.get())
+    
+    
+                init['dx_bpl']=None if init_dx_bpl_entry.get()=='None' else float(init_dx_bpl_entry.get())
+                minval['dx_bpl']=None if minval_dx_bpl_entry.get()=='None' else float(minval_dx_bpl_entry.get())
+                maxval['dx_bpl']=None if maxval_dx_bpl_entry.get()=='None' else float(maxval_dx_bpl_entry.get())
+                
+                
             if gauss_pres==1:#if gaussian function present, save parameter options from the gui for that function
                 init['gauss_centre']=None if init_gauss_centre_entry.get()=='None' else float(init_gauss_centre_entry.get())
                 minval['gauss_centre']=None if minval_gauss_centre_entry.get()=='None' else float(minval_gauss_centre_entry.get())
@@ -3321,38 +3505,47 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                
                
             if power_pres==1:#if single power law function present, save parameter options from the gui for that function
-               init['B_sing']=None if init_B_sing_entry.get()=='None' else float(init_B_sing_entry.get())
-               minval['B_sing']=None if minval_B_sing_entry.get()=='None' else float(minval_B_sing_entry.get())
-               maxval['B_sing']=None if maxval_B_sing_entry.get()=='None' else float( maxval_B_sing_entry.get())
+                init['B_sing']=None if init_B_sing_entry.get()=='None' else float(init_B_sing_entry.get())
+                minval['B_sing']=None if minval_B_sing_entry.get()=='None' else float(minval_B_sing_entry.get())
+                maxval['B_sing']=None if maxval_B_sing_entry.get()=='None' else float( maxval_B_sing_entry.get())
+     
+     
+                init['A_sing']=None if init_A_sing_entry.get()=='None' else float(init_A_sing_entry.get())
+                minval['A_sing']=None if minval_A_sing_entry.get()=='None' else float(minval_A_sing_entry.get())
+                maxval['A_sing']=None if maxval_A_sing_entry.get()=='None' else float(maxval_A_sing_entry.get())
+               
+                init['x0_sing']=None if init_x0_sing_entry.get()=='None' else float(init_x0_sing_entry.get())
+                minval['x0_sing']=None if minval_x0_sing_entry.get()=='None' else float(minval_x0_sing_entry.get())
+                maxval['x0_sing']=None if maxval_x0_sing_entry.get()=='None' else float( maxval_x0_sing_entry.get())
     
     
-               init['A_sing']=None if init_A_sing_entry.get()=='None' else float(init_A_sing_entry.get())
-               minval['A_sing']=None if minval_A_sing_entry.get()=='None' else float(minval_A_sing_entry.get())
-               maxval['A_sing']=None if maxval_A_sing_entry.get()=='None' else float(maxval_A_sing_entry.get())
+                init['dx_sing']=None if init_dx_sing_entry.get()=='None' else float(init_dx_sing_entry.get())
+                minval['dx_sing']=None if minval_dx_sing_entry.get()=='None' else float(minval_dx_sing_entry.get())
+                maxval['dx_sing']=None if maxval_dx_sing_entry.get()=='None' else float(maxval_dx_sing_entry.get())
 
 
             if kappa_pres==1:#if kappa function present, save parameter options from the gui for that function
 
     
-               init['A_k']=None if init_A_k_entry.get()=='None' else float(init_A_k_entry.get())
-               minval['A_k']=None if minval_A_k_entry.get()=='None' else float(minval_A_k_entry.get())
-               maxval['A_k']=None if maxval_A_k_entry.get()=='None' else float(maxval_A_k_entry.get())
-               
-               init['T_k']=None if init_T_k_entry.get()=='None' else float(init_T_k_entry.get())
-               minval['T_k']=None if minval_T_k_entry.get()=='None' else float(minval_T_k_entry.get())
-               maxval['T_k']=None if maxval_T_k_entry.get()=='None' else float( maxval_T_k_entry.get())
-               
-               init['m_i']=None if init_m_i_entry.get()=='None' else float(init_m_i_entry.get())
-               minval['m_i']=None if minval_m_i_entry.get()=='None' else float(minval_m_i_entry.get())
-               maxval['m_i']=None if maxval_m_i_entry.get()=='None' else float( maxval_m_i_entry.get())
-               
-               init['n_i']=None if init_n_i_entry.get()=='None' else float(init_n_i_entry.get())
-               minval['n_i']=None if minval_n_i_entry.get()=='None' else float(minval_n_i_entry.get())
-               maxval['n_i']=None if maxval_n_i_entry.get()=='None' else float( maxval_n_i_entry.get())    
-               
-               init['kappa']=None if init_kappa_entry.get()=='None' else float(init_kappa_entry.get())
-               minval['kappa']=None if minval_kappa_entry.get()=='None' else float(minval_kappa_entry.get())
-               maxval['kappa']=None if maxval_kappa_entry.get()=='None' else float( maxval_kappa_entry.get())
+                init['A_k']=None if init_A_k_entry.get()=='None' else float(init_A_k_entry.get())
+                minval['A_k']=None if minval_A_k_entry.get()=='None' else float(minval_A_k_entry.get())
+                maxval['A_k']=None if maxval_A_k_entry.get()=='None' else float(maxval_A_k_entry.get())
+                
+                init['T_k']=None if init_T_k_entry.get()=='None' else float(init_T_k_entry.get())
+                minval['T_k']=None if minval_T_k_entry.get()=='None' else float(minval_T_k_entry.get())
+                maxval['T_k']=None if maxval_T_k_entry.get()=='None' else float( maxval_T_k_entry.get())
+                
+                init['m_i']=None if init_m_i_entry.get()=='None' else float(init_m_i_entry.get())
+                minval['m_i']=None if minval_m_i_entry.get()=='None' else float(minval_m_i_entry.get())
+                maxval['m_i']=None if maxval_m_i_entry.get()=='None' else float( maxval_m_i_entry.get())
+                
+                init['n_i']=None if init_n_i_entry.get()=='None' else float(init_n_i_entry.get())
+                minval['n_i']=None if minval_n_i_entry.get()=='None' else float(minval_n_i_entry.get())
+                maxval['n_i']=None if maxval_n_i_entry.get()=='None' else float( maxval_n_i_entry.get())    
+                
+                init['kappa']=None if init_kappa_entry.get()=='None' else float(init_kappa_entry.get())
+                minval['kappa']=None if minval_kappa_entry.get()=='None' else float(minval_kappa_entry.get())
+                maxval['kappa']=None if maxval_kappa_entry.get()=='None' else float( maxval_kappa_entry.get())
                
             if bpl_and_therm_pres==1:
                 init['T_c']=None if init_T_c_entry.get()=='None' else float(init_T_c_entry.get())
@@ -3457,6 +3650,15 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 minval['B3_tpl']=None if minval_B3_tpl_entry.get()=='None' else float(minval_B3_tpl_entry.get())
                 maxval['B3_tpl']=None if maxval_B3_tpl_entry.get()=='None' else float(maxval_B3_tpl_entry.get())
                 
+                init['x0_tpl']=None if init_x0_tpl_entry.get()=='None' else float(init_x0_tpl_entry.get())
+                minval['x0_tpl']=None if minval_x0_tpl_entry.get()=='None' else float(minval_x0_tpl_entry.get())
+                maxval['x0_tpl']=None if maxval_x0_tpl_entry.get()=='None' else float( maxval_x0_tpl_entry.get())
+    
+    
+                init['dx_tpl']=None if init_dx_tpl_entry.get()=='None' else float(init_dx_tpl_entry.get())
+                minval['dx_tpl']=None if minval_dx_tpl_entry.get()=='None' else float(minval_dx_tpl_entry.get())
+                maxval['dx_tpl']=None if maxval_dx_tpl_entry.get()=='None' else float(maxval_dx_tpl_entry.get())
+            
             if qpl_pres==1:#if qpl function present, save parameter options from the gui for that function
                 init['x1_qpl']=None if init_x1_qpl_entry.get()=='None' else float(init_x1_qpl_entry.get())
                 minval['x1_qpl']=None if minval_x1_qpl_entry.get()=='None' else float(minval_x1_qpl_entry.get())
@@ -3506,6 +3708,16 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 init['B4_qpl']=None if init_B4_qpl_entry.get()=='None' else float(init_B4_qpl_entry.get())
                 minval['B4_qpl']=None if minval_B4_qpl_entry.get()=='None' else float(minval_B4_qpl_entry.get())
                 maxval['B4_qpl']=None if maxval_B4_qpl_entry.get()=='None' else float(maxval_B4_qpl_entry.get())
+                
+                init['x0_qpl']=None if init_x0_qpl_entry.get()=='None' else float(init_x0_qpl_entry.get())
+                minval['x0_qpl']=None if minval_x0_qpl_entry.get()=='None' else float(minval_x0_qpl_entry.get())
+                maxval['x0_qpl']=None if maxval_x0_qpl_entry.get()=='None' else float( maxval_x0_qpl_entry.get())
+    
+    
+                init['dx_qpl']=None if init_dx_qpl_entry.get()=='None' else float(init_dx_qpl_entry.get())
+                minval['dx_qpl']=None if minval_dx_qpl_entry.get()=='None' else float(minval_dx_qpl_entry.get())
+                maxval['dx_qpl']=None if maxval_dx_qpl_entry.get()=='None' else float(maxval_dx_qpl_entry.get())
+                
                 
             if quint_pl_pres==1:#if 5pl function present, save parameter options from the gui for that function
                 init['x1_5pl']=None if init_x1_5pl_entry.get()=='None' else float(init_x1_5pl_entry.get())
@@ -3568,6 +3780,15 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 init['B5_5pl']=None if init_B5_5pl_entry.get()=='None' else float(init_B5_5pl_entry.get())
                 minval['B5_5pl']=None if minval_B5_5pl_entry.get()=='None' else float(minval_B5_5pl_entry.get())
                 maxval['B5_5pl']=None if maxval_B5_5pl_entry.get()=='None' else float(maxval_B5_5pl_entry.get())  
+                            
+                init['x0_5pl']=None if init_x0_5pl_entry.get()=='None' else float(init_x0_5pl_entry.get())
+                minval['x0_5pl']=None if minval_x0_5pl_entry.get()=='None' else float(minval_x0_5pl_entry.get())
+                maxval['x0_5pl']=None if maxval_x0_5pl_entry.get()=='None' else float( maxval_x0_5pl_entry.get())
+    
+    
+                init['dx_5pl']=None if init_dx_5pl_entry.get()=='None' else float(init_dx_5pl_entry.get())
+                minval['dx_5pl']=None if minval_dx_5pl_entry.get()=='None' else float(minval_dx_5pl_entry.get())
+                maxval['dx_5pl']=None if maxval_dx_5pl_entry.get()=='None' else float(maxval_dx_5pl_entry.get())
                 
                 
             #pull the min/max energy (x) values to fit to
@@ -3669,7 +3890,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init_A2_entry.insert(0,parvals_ld["A2"])
             init_B2_entry.delete(0, tk.END)
             init_B2_entry.insert(0,parvals_ld["B2"])
-
+            init_x0_bpl_entry.delete(0, tk.END)
+            init_x0_bpl_entry.insert(0,parvals_ld["x0_bpl"])
+            init_dx_bpl_entry.delete(0, tk.END)
+            init_dx_bpl_entry.insert(0,parvals_ld["dx_bpl"])
 
             
         if header[28]=='1':#ie if the therm func is present in the save, add the function with the saved param values
@@ -3699,6 +3923,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init_A_sing_entry.insert(0,parvals_ld["A_sing"])
             init_B_sing_entry.delete(0, tk.END)
             init_B_sing_entry.insert(0,parvals_ld["B_sing"])
+            init_x0_sing_entry.delete(0, tk.END)
+            init_x0_sing_entry.insert(0,parvals_ld["x0_sing"])
+            init_dx_sing_entry.delete(0, tk.END)
+            init_dx_sing_entry.insert(0,parvals_ld["dx_sing"])
             
         if header[70]=='1':#ie if the kappa function is present
             add_kappa()
@@ -3770,6 +3998,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init_A3_tpl_entry.insert(0,parvals_ld["A3_tpl"])
             init_B3_tpl_entry.delete(0, tk.END)
             init_B3_tpl_entry.insert(0,parvals_ld["B3_tpl"])
+            init_x0_tpl_entry.delete(0, tk.END)
+            init_x0_tpl_entry.insert(0,parvals_ld["x0_tpl"])
+            init_dx_tpl_entry.delete(0, tk.END)
+            init_dx_tpl_entry.insert(0,parvals_ld["dx_tpl"])
             
         if header[142]=='1':# ie if the qpl is present in the save, add the function with the saved param values
             
@@ -3797,6 +4029,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init_A4_qpl_entry.insert(0,parvals_ld["A4_qpl"])
             init_B4_qpl_entry.delete(0, tk.END)
             init_B4_qpl_entry.insert(0,parvals_ld["B4_qpl"])
+            init_x0_qpl_entry.delete(0, tk.END)
+            init_x0_qpl_entry.insert(0,parvals_ld["x0_qpl"])
+            init_dx_qpl_entry.delete(0, tk.END)
+            init_dx_qpl_entry.insert(0,parvals_ld["dx_qpl"])
         
             
         if header[159]=='1':# ie if the quint pl is present in the save, add the function with the saved param values
@@ -3831,6 +4067,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init_A5_5pl_entry.insert(0,parvals_ld["A5_5pl"])
             init_B5_5pl_entry.delete(0, tk.END)
             init_B5_5pl_entry.insert(0,parvals_ld["B5_5pl"])  
+            init_x0_5pl_entry.delete(0, tk.END)
+            init_x0_5pl_entry.insert(0,parvals_ld["x0_5pl"])
+            init_dx_5pl_entry.delete(0, tk.END)
+            init_dx_5pl_entry.insert(0,parvals_ld["dx_5pl"])
                    
     def fit_sum_hndl():
         try:

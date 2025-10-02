@@ -417,7 +417,7 @@ def gauss_func(x,gauss_amp,gauss_centre,sigma): #defines a gaussian function tha
     y_gauss=gauss_amp*np.exp((-(x-gauss_centre)**2)/(2*sigma**2))
     return y_gauss
 
-def power_func(x,A_sing,B_sing,dx_sing,x0_sing): #defines a simgle power law that can be added
+def power_func(x,A_sing,B_sing,x0_sing,dx_sing): #defines a simgle power law that can be added
     x=np.array(x)
     xlo_sing=(erf(((x-x0_sing)/dx_sing))+1)/2#below x0
     y_pow=xlo_sing*(A_sing*(x**B_sing))

@@ -876,7 +876,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                     lowest_chisq = trial.chisqr
             except Exception as e:
                 print(f"Seed {seed} failed: {e}")
-
+                #breakpoint()
             pb['value'] += 100 / n_seeds
             pb.update_idletasks()
 
@@ -1055,7 +1055,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
 
     #%%result plotting
-    x_model=np.linspace(min(x_data), max(x_data), 1000000)#set up an x-model for plotting the fitted line
+    x_model=np.logspace(np.log10(min(x_data)), np.log10(max(x_data)), 1000000)#set up an x-model for plotting the fitted line
     fit=test_func(x_model,parvals,header)# y-values for our new modeled fit
     
 
@@ -1265,7 +1265,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 #%%preview initial parameter for fit
 
 def param_preview(x_data,y_data,parvals,header):
-    x_model=np.linspace(min(x_data), max(x_data), 1000000)#set up an x-model for plotting the fitted line
+    x_model=np.logspace(np.log10(min(x_data)), np.log10(max(x_data)), 1000000)#set up an x-model for plotting the fitted line
 
     
     #unpack parvals
@@ -1967,7 +1967,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B']=-10
             minval['A2']=0
             minval['B2']=-10            
-            minval['x0_bpl']=0.1
+            minval['x0_bpl']=-1
             minval['dx_bpl']=0.01
 
             global frame_bpl#defining gui section to handle bpl param options
@@ -2075,7 +2075,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             global minval##define global minimum values for the params of the function
             minval['A_sing']=0
             minval['B_sing']=None
-            minval['x0_sing']=0.1
+            minval['x0_sing']=-1
             minval['dx_sing']=0.01
             
             global maxval##define global maximum values for the params of the function
@@ -2384,7 +2384,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B2_tpl']=-10            
             minval['A3_tpl']=0
             minval['B3_tpl']=-10            
-            minval['x0_tpl']=0.1
+            minval['x0_tpl']=-1
             minval['dx_tpl']=0.01
 
             global frame_tpl#defining gui section to handle tpl param options
@@ -2500,7 +2500,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B3_qpl']=-10
             minval['A4_qpl']=0
             minval['B4_qpl']=-10            
-            minval['x0_qpl']=0.1
+            minval['x0_qpl']=-1.1
             minval['dx_qpl']=0.01
             
             global frame_qpl#defining gui section to handle qpl param options
@@ -2639,7 +2639,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B4_5pl']=-10
             minval['A5_5pl']=0
             minval['B5_5pl']=-10            
-            minval['x0_5pl']=0.1
+            minval['x0_5pl']=-1
             minval['dx_5pl']=0.01
 
             global frame_quint_pl#defining gui section to handle quint_pl param options

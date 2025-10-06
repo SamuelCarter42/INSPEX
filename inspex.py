@@ -418,6 +418,7 @@ def gauss_func(x,gauss_amp,gauss_centre,sigma): #defines a gaussian function tha
     return y_gauss
 
 def power_func(x,A_sing,B_sing,x0_sing,dx_sing): #defines a simgle power law that can be added
+
     x=np.array(x)
     xlo_sing=(erf(((x-x0_sing)/dx_sing))+1)/2#below x0
     y_pow=xlo_sing*(A_sing*(x**B_sing))
@@ -1938,6 +1939,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['x0_bpl']=1
             init['dx_bpl']=0.1    
 
+
     
             global vary#define global if vary values for the params of the function
 
@@ -1959,6 +1961,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['x0_bpl']=10
             maxval['dx_bpl']=1
 
+
             
             global minval##define global minimum values for the params of the function
 
@@ -1969,6 +1972,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B2']=-10            
             minval['x0_bpl']=-1
             minval['dx_bpl']=0.01
+
 
             global frame_bpl#defining gui section to handle bpl param options
             frame_bpl=tk.Frame(master=frame_params)
@@ -2065,6 +2069,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B_sing']=-1
             init['x0_sing']=1
             init['dx_sing']=0.1    
+
             
             global vary#define global if vary values for the params of the function
             vary['A_sing']=True
@@ -2077,12 +2082,14 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B_sing']=None
             minval['x0_sing']=-1
             minval['dx_sing']=0.01
+
             
             global maxval##define global maximum values for the params of the function
             maxval['A_sing']=None
             maxval['B_sing']=0
             maxval['x0_sing']=10
             maxval['dx_sing']=1
+
             
             global frame_power
             frame_power=tk.Frame(master=frame_params)
@@ -2346,6 +2353,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B3_tpl']=-2   
             init['x0_tpl']=1
             init['dx_tpl']=0.1  
+
     
             global vary#define global if vary values for the params of the function
 
@@ -2373,6 +2381,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['x0_tpl']=10
             maxval['dx_tpl']=1
 
+
             
             global minval##define global minimum values for the params of the function
 
@@ -2386,6 +2395,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B3_tpl']=-10            
             minval['x0_tpl']=-1
             minval['dx_tpl']=0.01
+
 
             global frame_tpl#defining gui section to handle tpl param options
             frame_tpl=tk.Frame(master=frame_params)
@@ -2454,6 +2464,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B4_qpl']=-2 
             init['x0_qpl']=1
             init['dx_qpl']=0.1    
+
     
             global vary#define global if vary values for the params of the function
 
@@ -2486,6 +2497,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['B4_qpl']=0           
             maxval['x0_qpl']=10
             maxval['dx_qpl']=1
+
             
             global minval##define global minimum values for the params of the function
 
@@ -2502,6 +2514,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B4_qpl']=-10            
             minval['x0_qpl']=-1.1
             minval['dx_qpl']=0.01
+
             
             global frame_qpl#defining gui section to handle qpl param options
             frame_qpl=tk.Frame(master=frame_params)
@@ -2584,6 +2597,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['B5_5pl']=-2 
             init['x0_5pl']=1
             init['dx_5pl']=0.1    
+
     
             global vary#define global if vary values for the params of the function
 
@@ -2622,6 +2636,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             maxval['B5_5pl']=0 
             maxval['x0_5pl']=10
             maxval['dx_5pl']=1
+
             
             global minval##define global minimum values for the params of the function
 
@@ -2641,6 +2656,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B5_5pl']=-10            
             minval['x0_5pl']=-1
             minval['dx_5pl']=0.01
+
 
             global frame_quint_pl#defining gui section to handle quint_pl param options
             frame_quint_pl=tk.Frame(master=frame_params)

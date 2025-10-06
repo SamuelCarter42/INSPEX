@@ -418,7 +418,6 @@ def gauss_func(x,gauss_amp,gauss_centre,sigma): #defines a gaussian function tha
     return y_gauss
 
 def power_func(x,A_sing,B_sing,x0_sing,dx_sing): #defines a simgle power law that can be added
-
     x=np.array(x)
     xlo_sing=(erf(((x-x0_sing)/dx_sing))+1)/2#below x0
     y_pow=xlo_sing*(A_sing*(x**B_sing))
@@ -1939,7 +1938,6 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['x0_bpl']=1
             init['dx_bpl']=0.1    
 
-
     
             global vary#define global if vary values for the params of the function
 
@@ -1972,6 +1970,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             minval['B2']=-10            
             minval['x0_bpl']=-1
             minval['dx_bpl']=0.01
+
 
 
             global frame_bpl#defining gui section to handle bpl param options
@@ -2354,7 +2353,6 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             init['x0_tpl']=1
             init['dx_tpl']=0.1  
 
-    
             global vary#define global if vary values for the params of the function
 
             vary['x1_tpl']=True

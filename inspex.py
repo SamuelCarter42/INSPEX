@@ -2114,7 +2114,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=5, column=0, columnspan=5, pady=10)
 
             frame_power.grid(row=5, column=0, sticky="ew")
-            for i in range(5):
+            for i in range(6):
                 frame_power.grid_columnconfigure(i, weight=1)
             power_pres = 1
             
@@ -2181,7 +2181,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=6, column=0, columnspan=5, pady=10)
 
             frame_kappa.grid(row=6, column=0, sticky="ew")
-            for i in range(6):
+            for i in range(7):
                 frame_kappa.grid_columnconfigure(i, weight=1)
             kappa_pres = 1
             
@@ -2258,7 +2258,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=8, column=0, columnspan=5, pady=10)
 
             frame_bpl_and_therm.grid(row=7, column=0, sticky="ew")
-            for i in range(8):
+            for i in range(9):
                 frame_bpl_and_therm.grid_columnconfigure(i, weight=1)
             bpl_and_therm_pres = 1
     
@@ -2330,7 +2330,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=7, column=0, columnspan=5, pady=10)
 
             frame_double_therm.grid(row=8, column=0, sticky="ew")
-            for i in range(7):
+            for i in range(8):
                 frame_double_therm.grid_columnconfigure(i, weight=1)
             double_therm_func_pres = 1 #set the thermal function as present
     
@@ -2424,8 +2424,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             add_param_row(frame_tpl, 6, "x2_tpl", init['x2_tpl'], minval['x2_tpl'], maxval['x2_tpl'], vary['x2_tpl'], toggle_x2_tpl, "x2_tpl")
             add_param_row(frame_tpl, 7, "A3_tpl", init['A3_tpl'], minval['A3_tpl'], maxval['A3_tpl'], vary['A3_tpl'], toggle_A3_tpl, "A3_tpl")
             add_param_row(frame_tpl, 8, "B3_tpl", init['B3_tpl'], minval['B3_tpl'], maxval['B3_tpl'], vary['B3_tpl'], toggle_B3_tpl, "B3_tpl")
-            add_param_row(frame_tpl, 8, "x0_tpl", init['x0_tpl'], minval['x0_tpl'], maxval['x0_tpl'], vary['x0_tpl'], toggle_x0_tpl, "x0_tpl")
-            add_param_row(frame_tpl, 9, "dx_tpl", init['dx_tpl'], minval['dx_tpl'], maxval['dx_tpl'], vary['dx_tpl'], toggle_dx_tpl, "dx_tpl")
+            add_param_row(frame_tpl, 9, "x0_tpl", init['x0_tpl'], minval['x0_tpl'], maxval['x0_tpl'], vary['x0_tpl'], toggle_x0_tpl, "x0_tpl")
+            add_param_row(frame_tpl, 10, "dx_tpl", init['dx_tpl'], minval['dx_tpl'], maxval['dx_tpl'], vary['dx_tpl'], toggle_dx_tpl, "dx_tpl")
 
             
 
@@ -2435,10 +2435,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 tpl_pres = 0
 
             tk.Button(frame_tpl, text='Remove TPL component', command=hndl_remove_tpl_btn)\
-                .grid(row=10, column=0, columnspan=5, pady=10)
+                .grid(row=11, column=0, columnspan=5, pady=10)
 
             frame_tpl.grid(row=9, column=0, sticky="ew")
-            for i in range(10):
+            for i in range(12):
                 frame_tpl.grid_columnconfigure(i, weight=1)
             tpl_pres = 1
     
@@ -2569,7 +2569,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=14, column=0, columnspan=5, pady=10)
 
             frame_qpl.grid(row=10, column=0, sticky="ew")
-            for i in range(14):
+            for i in range(15):
                 frame_qpl.grid_columnconfigure(i, weight=1)
             qpl_pres = 1
     
@@ -2689,7 +2689,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=row_counter, column=0, columnspan=5, pady=10)
 
             frame_quint_pl.grid(row=11, column=0, sticky="ew")
-            for i in range(row_counter):
+            for i in range(row_counter+1):
                 frame_quint_pl.grid_columnconfigure(i, weight=1)
             quint_pl_pres = 1
     

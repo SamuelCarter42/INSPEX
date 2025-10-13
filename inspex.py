@@ -1856,7 +1856,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
         globals()[f"maxval_{name_prefix}_entry"].grid(row=row, column=3, padx=5)
 
         
-        globals()[f"btn_vary_{name_prefix}"] = tk.Checkbutton(frame, text=f"Vary {label_text}", command=callback)
+        globals()[f"btn_vary_{name_prefix}"] = tk.Checkbutton(frame, text=f"Vary {label_text}", command=callback, variable=tk.IntVar())
         globals()[f"btn_vary_{name_prefix}"].grid(row=row, column=4, padx=5)
         
         if var_state:globals()[f"btn_vary_{name_prefix}"].select() 

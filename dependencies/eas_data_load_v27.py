@@ -74,7 +74,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     product = a.soar.Product("swa-eas1-nm3d-dnf")
     result = Fido.search(date_range, instrument,product)
     EAS1_files = Fido.fetch(result)
-    print(EAS1_files)
+    #print(EAS1_files)
+    
     
     #
 
@@ -141,7 +142,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     m0=1.2566*10.**(-6.)
     kb=1.3806*10.**(-23.)
     ###############
-    #These are the STEP FOV values in the RTN frame
+    #These are the STEP FOV values 
     elevation_min = -27
     elevation_max = 27
     azimuth_min = 21
@@ -182,6 +183,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     
     ###############
+    '''
+    #plot the sky maps
     ax = plt.axes(projection='3d')
     ax.scatter3D(EAS1_Xf,EAS1_Yf,EAS1_Zf,facecolors='none', edgecolors='blue',rasterized=True)
     ax.scatter3D(1.1*EPD_X,1.1*EPD_Y,1.1*EPD_Z,color='black',rasterized=True)
@@ -204,7 +207,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     ax.set_ylabel('Vy_SRF')
     ax.set_zlabel('Vz_SRF')
     plt.show()
-    
+    '''
     #convert the xyz back to angles to allow easier filtering
     Els=np.arcsin((EAS1_Xs+EAS1_Ys)/(-2*np.cos(45.*rad)))
     
@@ -258,7 +261,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     
     
-    # Repeat for the second set
+    # reshape to more sensible order
     #time,el,az,energy
     combo_files = np.transpose(combo_files, (0, 1, 3, 2))
     flux_files = np.transpose(flux_files, (0, 1, 3, 2))
@@ -280,8 +283,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
         #breakpoint()
     no_pix=np.count_nonzero(el_mask)*np.count_nonzero(az_mask)
     # Sum over azimuth (axis 2) and elevation (axis 1) for the second set
-    curve = np.sum(np.sum(combo_files, axis=2), axis=1)/no_pix
-    flux_curve = np.sum(np.sum(flux_files, axis=2), axis=1)/no_pix
+    curve = np.mean(combo_files, axis=(1,2))#/no_pix
+    flux_curve = np.mean(flux_files, axis=(1,2))#/no_pix
     
     
     count_curve_raw=np.array(curve)
@@ -343,7 +346,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     temp_curve=sqrt_curve/(0.92e-3*7.8e-6)#sqrt(c)/dtG
     
-    uncert_curve=temp_curve/valid_widths[None,:]
+    uncert_curve=temp_curve/(valid_widths[None,:]/1000)
+    #breakpoint()
     
     #%%cut back down to just day of interest
     

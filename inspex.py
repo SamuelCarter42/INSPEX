@@ -4490,7 +4490,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
-        breakpoint()
+        #breakpoint()
     #slice loaded data to range selected by user, as generally loads in full days
     
     

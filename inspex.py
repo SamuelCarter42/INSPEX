@@ -4492,10 +4492,10 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         time_series_time=eas_time_series_time
         
         #combine the data into one array
-        time_series_data=np.concatenate((step_time_series_data, eas_time_series_data), axis=1)
-        time_series_uncert=np.concatenate((step_time_series_uncert, eas_time_series_uncert), axis=1)
+        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data,), axis=1)
+        time_series_uncert=np.concatenate((eas_time_series_uncert,step_time_series_uncert), axis=1)
         time_series_energies=np.concatenate((eas_time_series_energies,step_time_series_energies))
-        
+        #breakpoint()
         
     #slice loaded data to range selected by user, as generally loads in full days    
     #set range to user defined fitting limits

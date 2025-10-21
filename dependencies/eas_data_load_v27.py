@@ -346,7 +346,9 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     temp_curve=sqrt_curve/(0.92e-3*7.8e-6)#sqrt(c)/dtG
     
+
     uncert_curve=temp_curve/(valid_widths[None,:])
+
     #breakpoint()
     
     #%%cut back down to just day of interest

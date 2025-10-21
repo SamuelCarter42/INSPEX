@@ -4490,21 +4490,27 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
-        #breakpoint()
-    #slice loaded data to range selected by user, as generally loads in full days
-    
-    
+        
+        #combine the data into one array
+        time_series_data=np.concatenate((step_time_series_data, eas_time_series_data), axis=1)
+        time_series_uncert=np.concatenate((step_time_series_uncert, eas_time_series_uncert), axis=1)
+        time_series_energies=eas_time_series_energies.extend(step_time_series_energies)
+        
+        
+    #slice loaded data to range selected by user, as generally loads in full days    
     #set range to user defined fitting limits
     x_data_sliced=list()
     y_data_sliced=list()
     uncert_sliced=list()
     for pos,time in enumerate(time_series_time):
-      print(time)
-      if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
-          x_data_sliced.append(time)
-          y_data_sliced.append(time_series_data[pos][:])
-          uncert_sliced.append(time_series_uncert[pos][:])
-    
+        #breakpoint()
+        #print(time)
+        time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
+        if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
+            x_data_sliced.append(time)
+            y_data_sliced.append(time_series_data[pos][:])
+            uncert_sliced.append(time_series_uncert[pos][:])
+      
     time_series_time_raw=time_series_time
     time_series_data_raw=time_series_data
     time_series_uncert_raw= time_series_uncert

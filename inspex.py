@@ -87,9 +87,12 @@ def load_early_step_data(start_time, end_time):
         mid=low+(diff)
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         #values times 1000 for MeV to keV
        
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         energy_lims.append((low,high))
@@ -163,7 +166,11 @@ def load_early_step_data(start_time, end_time):
             print("Error, data should be loaded from the later data function")
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         step_uncert_array[:][channel]=(step_uncert_array_raw[:][channel]*correction_factor)#correction from raw unmodified counts 
+=======
+        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts 
+>>>>>>> Stashed changes
 =======
         step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts 
 >>>>>>> Stashed changes

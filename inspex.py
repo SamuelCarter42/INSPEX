@@ -77,7 +77,7 @@ def load_early_step_data(start_time, end_time):
     ##turning bin text to numerical values
     energy_texts=list(energies_step["Electron_Avg_Bins_Text"])
 
-
+    energy_lims=list()
     energy_mids_step=list()
     energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, already in KeV
@@ -87,6 +87,7 @@ def load_early_step_data(start_time, end_time):
         high=float(string.split(' - ')[1][:-4])
         diff=(high-low)/2
         mid=low+(diff)
+
         #values times 1000 for MeV to keV
         energy_lims.append((low,high))
         energy_mids_step.append(mid)
@@ -146,7 +147,7 @@ def load_early_step_data(start_time, end_time):
     integ_uncert_step_sq=integ_uncert_step**2
     mag_uncert_step_sq=mag_uncert_step**2
 
-    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)/1000#conversion to per keV
+    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)
     
     #uncert must be corrected too
     step_uncert_array=step_uncert_array_raw.copy()
@@ -156,8 +157,11 @@ def load_early_step_data(start_time, end_time):
             correction_factor=early_correction_table[channel]
         else:
             print("Error, data should be loaded from the later data function")
-        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)#correction from raw unmodified counts 
-        
+
+
+        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts 
+
+
     
     
     

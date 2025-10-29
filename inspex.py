@@ -72,12 +72,14 @@ def load_early_step_data(start_time, end_time):
     df_step, energies_step = epd_load(sensor='step', level='l2', startdate=startdate, enddate=enddate, path=path, autodownload=autodownload)
     
     data_step=[df_step, energies_step]#save data we need
+    epd_xyz_sectors=energies_step['XYZ_Sectors']
     
     ##turning bin text to numerical values
     energy_texts=list(energies_step["Electron_Avg_Bins_Text"])
 
-
+    energy_lims=list()
     energy_mids_step=list()
+    energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, already in KeV
     for i in energy_texts:
         string=i[0]
@@ -85,8 +87,9 @@ def load_early_step_data(start_time, end_time):
         high=float(string.split(' - ')[1][:-4])
         diff=(high-low)/2
         mid=low+(diff)
+
         #values times 1000 for MeV to keV
-       
+        energy_lims.append((low,high))
         energy_mids_step.append(mid)
        
     #correction values for the electron rates (see !!!!!!!!!! for why these corrections are neccesary)
@@ -130,7 +133,7 @@ def load_early_step_data(start_time, end_time):
             correction_factor=early_correction_table[channel]
         else:
             print("Error, data should be loaded from the later data function")
-        step_array[:][channel]=(step_array_raw[:][channel]*correction_factor)/1000#correction from raw unmodified counts including per keV conversion
+        step_array[:,channel]=(step_array_raw[:,channel]*correction_factor)/1000#correction from raw unmodified counts including per keV conversion
         
 
 
@@ -144,7 +147,7 @@ def load_early_step_data(start_time, end_time):
     integ_uncert_step_sq=integ_uncert_step**2
     mag_uncert_step_sq=mag_uncert_step**2
 
-    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)/1000#conversion to per keV
+    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)
     
     #uncert must be corrected too
     step_uncert_array=step_uncert_array_raw.copy()
@@ -154,14 +157,17 @@ def load_early_step_data(start_time, end_time):
             correction_factor=early_correction_table[channel]
         else:
             print("Error, data should be loaded from the later data function")
-        step_uncert_array[:][channel]=(step_uncert_array_raw[:][channel]*correction_factor)#correction from raw unmodified counts 
-        
+
+
+        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts 
+
+
     
     
     
     
     
-    return step_times,energy_mids_step,step_array,step_uncert_array
+    return step_times,energy_mids_step,step_array,step_uncert_array,epd_xyz_sectors,np.array(energy_lims)
 #%% load post-recalibration step data
 def load_late_step_data(start_time, end_time):
     #convert astropy time formats from hek to datetime formats for epd_load
@@ -188,9 +194,10 @@ def load_late_step_data(start_time, end_time):
     
     ##turning bin text to numerical values
     energy_texts=list(energies_step["Electron_Bins_Text"])
-
+    epd_xyz_sectors=energies_step['XYZ_Pixels']
 
     energy_mids_step=list()
+    energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, in KeV
     for i in energy_texts:
         string=i[0]
@@ -201,7 +208,7 @@ def load_late_step_data(start_time, end_time):
         #values times 1000 for MeV to keV
        
         energy_mids_step.append(mid)
-
+        energy_lims.append((low,high))
     #read correction table from the energy file
     correction_table=energies_step['Electron_Flux_Mult']['Electron_Avg_Flux_Mult']
 
@@ -238,7 +245,7 @@ def load_late_step_data(start_time, end_time):
 
     for channel in np.linspace(0, 31, num=32).astype(int):
         correction_factor=correction_table[channel]
-        step_array[:][channel]=(step_array_raw[:][channel]*correction_factor)/1000#correction from raw unmodified counts including per keV conversion
+        step_array[:,channel]=(step_array_raw[:,channel]*correction_factor)/1000#correction from raw unmodified counts including per keV conversion
     
     
     #error propagation
@@ -257,11 +264,11 @@ def load_late_step_data(start_time, end_time):
     for channel in np.linspace(0, 31, num=32).astype(int):
         #correction factor for electrons varies depending on when the data is from        
         correction_factor=correction_table[channel]
-        step_uncert_array[:][channel]=(step_uncert_array_raw[:][channel]*correction_factor)#correction from raw unmodified counts
+        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)#correction from raw unmodified counts
         
     
     
-    return step_times,energy_mids_step,step_array,step_uncert_array
+    return step_times,energy_mids_step,step_array,step_uncert_array,epd_xyz_sectors,np.array(energy_lims)
 #%%stereo data load function
 
 
@@ -1856,7 +1863,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
         globals()[f"maxval_{name_prefix}_entry"].grid(row=row, column=3, padx=5)
 
         
-        globals()[f"btn_vary_{name_prefix}"] = tk.Checkbutton(frame, text=f"Vary {label_text}", command=callback)
+        globals()[f"btn_vary_{name_prefix}"] = tk.Checkbutton(frame, text=f"Vary {label_text}", command=callback, variable=tk.IntVar())
         globals()[f"btn_vary_{name_prefix}"].grid(row=row, column=4, padx=5)
         
         if var_state:globals()[f"btn_vary_{name_prefix}"].select() 
@@ -2114,7 +2121,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=5, column=0, columnspan=5, pady=10)
 
             frame_power.grid(row=5, column=0, sticky="ew")
-            for i in range(5):
+            for i in range(6):
                 frame_power.grid_columnconfigure(i, weight=1)
             power_pres = 1
             
@@ -2181,7 +2188,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=6, column=0, columnspan=5, pady=10)
 
             frame_kappa.grid(row=6, column=0, sticky="ew")
-            for i in range(6):
+            for i in range(7):
                 frame_kappa.grid_columnconfigure(i, weight=1)
             kappa_pres = 1
             
@@ -2258,7 +2265,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=8, column=0, columnspan=5, pady=10)
 
             frame_bpl_and_therm.grid(row=7, column=0, sticky="ew")
-            for i in range(8):
+            for i in range(9):
                 frame_bpl_and_therm.grid_columnconfigure(i, weight=1)
             bpl_and_therm_pres = 1
     
@@ -2330,7 +2337,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=7, column=0, columnspan=5, pady=10)
 
             frame_double_therm.grid(row=8, column=0, sticky="ew")
-            for i in range(7):
+            for i in range(8):
                 frame_double_therm.grid_columnconfigure(i, weight=1)
             double_therm_func_pres = 1 #set the thermal function as present
     
@@ -2424,8 +2431,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             add_param_row(frame_tpl, 6, "x2_tpl", init['x2_tpl'], minval['x2_tpl'], maxval['x2_tpl'], vary['x2_tpl'], toggle_x2_tpl, "x2_tpl")
             add_param_row(frame_tpl, 7, "A3_tpl", init['A3_tpl'], minval['A3_tpl'], maxval['A3_tpl'], vary['A3_tpl'], toggle_A3_tpl, "A3_tpl")
             add_param_row(frame_tpl, 8, "B3_tpl", init['B3_tpl'], minval['B3_tpl'], maxval['B3_tpl'], vary['B3_tpl'], toggle_B3_tpl, "B3_tpl")
-            add_param_row(frame_tpl, 8, "x0_tpl", init['x0_tpl'], minval['x0_tpl'], maxval['x0_tpl'], vary['x0_tpl'], toggle_x0_tpl, "x0_tpl")
-            add_param_row(frame_tpl, 9, "dx_tpl", init['dx_tpl'], minval['dx_tpl'], maxval['dx_tpl'], vary['dx_tpl'], toggle_dx_tpl, "dx_tpl")
+            add_param_row(frame_tpl, 9, "x0_tpl", init['x0_tpl'], minval['x0_tpl'], maxval['x0_tpl'], vary['x0_tpl'], toggle_x0_tpl, "x0_tpl")
+            add_param_row(frame_tpl, 10, "dx_tpl", init['dx_tpl'], minval['dx_tpl'], maxval['dx_tpl'], vary['dx_tpl'], toggle_dx_tpl, "dx_tpl")
 
             
 
@@ -2435,10 +2442,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 tpl_pres = 0
 
             tk.Button(frame_tpl, text='Remove TPL component', command=hndl_remove_tpl_btn)\
-                .grid(row=10, column=0, columnspan=5, pady=10)
+                .grid(row=11, column=0, columnspan=5, pady=10)
 
             frame_tpl.grid(row=9, column=0, sticky="ew")
-            for i in range(10):
+            for i in range(12):
                 frame_tpl.grid_columnconfigure(i, weight=1)
             tpl_pres = 1
     
@@ -2569,7 +2576,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=14, column=0, columnspan=5, pady=10)
 
             frame_qpl.grid(row=10, column=0, sticky="ew")
-            for i in range(14):
+            for i in range(15):
                 frame_qpl.grid_columnconfigure(i, weight=1)
             qpl_pres = 1
     
@@ -2689,7 +2696,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                 .grid(row=row_counter, column=0, columnspan=5, pady=10)
 
             frame_quint_pl.grid(row=11, column=0, sticky="ew")
-            for i in range(row_counter):
+            for i in range(row_counter+1):
                 frame_quint_pl.grid_columnconfigure(i, weight=1)
             quint_pl_pres = 1
     
@@ -4417,9 +4424,9 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     #load in data for selected probe. list of times, list of energies in keV, array of data in (times by energies), array of uncerts in (times by energies)
     if inst=="SolO-STEP":
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            time_series_time,time_series_energies,time_series_data,time_series_uncert=load_early_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            time_series_time,time_series_energies,time_series_data,time_series_uncert=load_late_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
                             
         if resample_dur!=None:
             time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
@@ -4478,29 +4485,36 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         #load step
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert=load_early_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert=load_late_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
         
         if resample_dur!=None:#resample step
             step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
-        breakpoint()
-    #slice loaded data to range selected by user, as generally loads in full days
-    
-    
+        
+        #combine the data into one array
+        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data,), axis=1)
+        time_series_uncert=np.concatenate((eas_time_series_uncert,step_time_series_uncert), axis=1)
+        time_series_energies=np.concatenate((eas_time_series_energies,step_time_series_energies))
+        #breakpoint()
+        
+    #slice loaded data to range selected by user, as generally loads in full days    
     #set range to user defined fitting limits
     x_data_sliced=list()
     y_data_sliced=list()
     uncert_sliced=list()
     for pos,time in enumerate(time_series_time):
-      if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
-          x_data_sliced.append(time)
-          y_data_sliced.append(time_series_data[pos][:])
-          uncert_sliced.append(time_series_uncert[pos][:])
-    
+        #breakpoint()
+        #print(time)
+        time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
+        if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
+            x_data_sliced.append(time)
+            y_data_sliced.append(time_series_data[pos][:])
+            uncert_sliced.append(time_series_uncert[pos][:])
+      
     time_series_time_raw=time_series_time
     time_series_data_raw=time_series_data
     time_series_uncert_raw= time_series_uncert
@@ -4862,9 +4876,9 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
     #load in data for selected probe. list of times, list of energies in keV, array of data in (times by energies), array of uncerts in (times by energies)
     if inst=="SolO-STEP":
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            time_series_time,time_series_energies,time_series_data,time_series_uncert=load_early_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#porst-recalibration
-            time_series_time,time_series_energies,time_series_data,time_series_uncert=load_late_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
             
             #later data recalibrated and changed-must have different routines to interpret
     

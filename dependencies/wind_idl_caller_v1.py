@@ -1,6 +1,6 @@
 import os
 import subprocess
-import wexpect
+
 import sys
 import datetime as dt#handles general datetime operations
 import idl_locator#for finding the user's IDL install

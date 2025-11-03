@@ -261,7 +261,11 @@ def load_late_step_data(start_time, end_time):
         #correction factor for electrons varies depending on when the data is from        
         correction_factor=correction_table[channel]
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         step_uncert_array[:][channel]=(step_uncert_array_raw[:][channel]*correction_factor)#correction from raw unmodified counts
+=======
+        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts
+>>>>>>> Stashed changes
 =======
         step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts
 >>>>>>> Stashed changes

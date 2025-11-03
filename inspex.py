@@ -253,14 +253,18 @@ def load_late_step_data(start_time, end_time):
     integ_uncert_step_sq=integ_uncert_step**2
     mag_uncert_step_sq=mag_uncert_step**2
 
-    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)/1000#conversion to per keV
+    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)
     
     #uncert must be corrected too
     step_uncert_array=step_uncert_array_raw.copy()
     for channel in np.linspace(0, 31, num=32).astype(int):
         #correction factor for electrons varies depending on when the data is from        
         correction_factor=correction_table[channel]
+<<<<<<< Updated upstream
         step_uncert_array[:][channel]=(step_uncert_array_raw[:][channel]*correction_factor)#correction from raw unmodified counts
+=======
+        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts
+>>>>>>> Stashed changes
         
     
     

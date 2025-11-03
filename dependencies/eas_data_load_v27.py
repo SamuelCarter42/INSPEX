@@ -345,11 +345,12 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     sqrt_curve=np.sqrt(count_curve)
     
     temp_curve=sqrt_curve/(0.92e-3*7.8e-6)#sqrt(c)/dtG
-    
+    #G from verscharen verscharen personal comms
 
     uncert_curve=temp_curve/(valid_widths[None,:])
-
+    uncert_curve=uncert_curve/10 #unit conversion
     #breakpoint()
+
     
     #%%cut back down to just day of interest
     

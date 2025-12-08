@@ -1170,7 +1170,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.scatter(x2_tpl,test_func(int(x2_tpl),parvals,header),zorder=100000,c='black')
         
     if header[142]=='1':# ie if the qpl is present
-        xlo=[ ((erf(((x_i-x0_qpl)/dx_qpl))+1)/2) if x_i<x1 else 0 for x_i in x_model] #below x1
+        xlo=[ ((erf(((x_i-x0_qpl)/dx_qpl))+1)/2) if x_i<x1_qpl else 0 for x_i in x_model] #below x1
         xmid1 =[ 1 if (x_i>=x1_qpl and x_i<=x2_qpl) else 0 for x_i in x_model] #between x1 and x2
         xmid2 =[ 1 if (x_i>x2_qpl and x_i<=x3_qpl) else 0 for x_i in x_model] #between x2 and x3
         xhi=[ 1 if x_i>x3_qpl else 0 for x_i in x_model]#above x3    
@@ -1254,7 +1254,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_resids.grid()
     
     #enable this to save residuals-must change file name-make a button soon
-    #with open('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/1st year/Paper 1 maybe/final figs and fits/final figs v7/TS fitting eg/'+f'ts_eas_fitting_resids.pkl', 'w+b') as f:
+    #with open('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/2nd year/paper comments/resids/'+f'5min flue FAF 5pl resids.pkl', 'w+b') as f:
         #pickle.dump([resids], f)
      
      
@@ -4537,7 +4537,8 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     TS_window.title("Select background and spectrum ranges")
     fig_TS =plt.Figure(figsize=(4,3), dpi=300)    
     ax_TS= fig_TS.add_subplot(1, 1, 1)
-    
+
+
 
     
     #set global variables
@@ -4569,8 +4570,12 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
             label=f'{round(time_series_energies[channel],2)} keV'
             
-            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75)#
+            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=45)#
         
+
+
+
+
         ax_TS.set_xlim(min(time_series_time),max(time_series_time))
         #ax_TS.set_ylim(bottom=time_series_data_raw.min())
         time_range_s=max(time_series_time)-min(time_series_time)        
@@ -4587,11 +4592,15 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         ax_TS.vlines(spec_mintime, 0, line_top, colors='k',linestyles=[(0,(9,3,4,4))],linewidth=width)
         ax_TS.vlines(spec_maxtime, 0, line_top, colors='k',linestyles=[(0,(9,3,4,4))],linewidth=width)
 
-        
+
+
+        fig_TS.canvas.draw()
         fig_TS.canvas.draw_idle()#this draws it on the canvas and end of update 
-        
+
 
     low_x=ax_TS.get_xlim()[0]
+
+
     upper_x=ax_TS.get_xlim()[1]#sets the max and min for the location slider
     slider_res=0.01
     slider_frame=tk.Frame(master=TS_window)
@@ -4681,14 +4690,17 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
         pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=f'{round(time_series_energies[channel],2)} keV')#
     ax_TS.set_ylim(bottom=1)
-    
-    
+    #fig_TS.autofmt_xdate()
+
+
+    fig_TS.canvas.draw()
     canvas_TS = FigureCanvasTkAgg(fig_TS, master=TS_window) 
+    fig_TS.tight_layout()
     canvas_TS.draw()  
+
     canvas_TS.get_tk_widget().pack()
-    
-    
-    
+
+
     TS_window.mainloop()
     
     
@@ -4938,14 +4950,17 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
     inters_window.title("Select background and spectrum intervals")
     fig_TS =plt.Figure(figsize=(4,3), dpi=300)    
     ax_TS= fig_TS.add_subplot(1, 1, 1)
-    
+
     tsres="15min"
 
     #for a selection of energy channels, convert from array to pd.series, resample for clarity then plot with appropriate label
     for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
         pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=f'{round(time_series_energies[channel],2)} keV')#
     #ax_TS.set_ylim(bottom=time_series_data_raw.min())
-    
+
+
+
+
 
     canvas_TS = FigureCanvasTkAgg(fig_TS, master=inters_window) 
     canvas_TS.draw()  
@@ -5013,6 +5028,10 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
             
             low_x=ax_TS.get_xlim()[0]
             upper_x=ax_TS.get_xlim()[1]#sets the max and min for the location slider
+            fig_TS.autofmt_xdate()
+
+            ax_TS.tick_params(axis='x', rotation=45, labelright=False)
+
             slider_res=0.01
             sliders_ints.append(tk.Scale(master=frame_inter_gen,from_=0, to=1,resolution=slider_res,command=interval_generate,orient=tk.HORIZONTAL,label='Interval 0'))
             sliders_ints[0].set(1/2)#this sets the initial value 
@@ -5030,12 +5049,12 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
         for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
             label=f'{round(time_series_energies[channel],2)} keV'
             
-            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75)#
-        
+            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=45)#
+
         ax_TS.set_xlim(min(time_series_time),max(time_series_time))
         #ax_TS.set_ylim(bottom=time_series_data_raw.min())
         time_range_s=max(time_series_time)-min(time_series_time)        
-        
+
         bg_mintime=min(time_series_time)+(sliders[0].get()*time_range_s)
         bg_maxtime=min(time_series_time)+(sliders[1].get()*time_range_s)
 
@@ -5051,7 +5070,8 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
             if int_time<=max(time_series_time):
                 ax_TS.vlines(int_time, 0, line_top, colors='r',linestyles=[(0,(9,3,4,4))],linewidth=width)
             
-        
+        for tick in ax_TS.get_xticklabels():
+            tick.set_rotation(45)
         fig_TS.canvas.draw_idle()#this draws it on the canvas and end of update 
     
     def add_sliders(slider_num):#function that runs for manual interval select
@@ -5073,8 +5093,11 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
         for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
             label=f'{round(time_series_energies[channel],2)} keV'
             
-            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75)#
-        
+            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=45)#
+        fig_TS.autofmt_xdate()
+
+        ax_TS.tick_params(axis='x', rotation=45, which='major', labelright=False)
+
         ax_TS.set_xlim(min(time_series_time),max(time_series_time))
         #ax_TS.set_ylim(bottom=time_series_data_raw.min())
         time_range_s=max(time_series_time)-min(time_series_time)        
@@ -5095,8 +5118,8 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
         for i in inters:
             if i<=max(time_series_time):
                 ax_TS.vlines(i, 0, line_top, colors='r',linestyles=[(0,(9,3,4,4))],linewidth=width)
+                
 
-        
         fig_TS.canvas.draw_idle()#this draws it on the canvas and end of update 
     
     
@@ -5143,8 +5166,11 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
         for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
             label=f'{round(time_series_energies[channel],2)} keV'
             
-            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75)#
-        
+            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=45)#
+        fig_TS.autofmt_xdate()
+
+        ax_TS.tick_params(axis='x', rotation=45, which='major', labelright=False)  # simple & reliable
+
         ax_TS.set_xlim(min(time_series_time),max(time_series_time))
         #ax_TS.set_ylim(bottom=time_series_data_raw.min())
         time_range_s=max(time_series_time)-min(time_series_time)        
@@ -5176,8 +5202,8 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
                 int_time=min(time_series_time)+(sliders_ints[i].get()*time_range_s)
                 if int_time<=max(time_series_time):
                     ax_TS.vlines(int_time, 0, line_top, colors='r',linestyles=[(0,(9,3,4,4))],linewidth=width)
-         
-        
+        for tick in ax_TS.get_xticklabels():
+            tick.set_rotation(45)
         fig_TS.canvas.draw_idle()#this draws it on the canvas and end of update 
 
 

@@ -897,8 +897,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                 scale_covar=True)
             
             result = fitter_local.minimize(
-                method='lbfgsb',
-                options={'max_nfev': 50000, 'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7})
+                    method='least_squares',
+                    max_nfev=50000,
+                    ftol=1e-9, xtol=1e-9, gtol=1e-9)
             
         progress_win.destroy()  # Closes the window, allows wait_window to continue
         

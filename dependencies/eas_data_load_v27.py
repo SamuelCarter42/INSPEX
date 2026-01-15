@@ -42,10 +42,9 @@ sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Producti
 
 
 
-def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
+def EAS_data_load(date_for_spec,tstart,tend,energy_mids_avg,epd_xyz_sectors,low_e_cutoff=0.8):
 
-    tstart_set=tstart
-    tend_set=date_for_spec+' 23:59:59'
+
 
     #must load day before and after too, to avoid data gaps
     
@@ -74,11 +73,10 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     product = a.soar.Product("swa-eas1-nm3d-dnf")
     result = Fido.search(date_range, instrument,product)
     EAS1_files = Fido.fetch(result)
-    #print(EAS1_files)
-    
+    print(EAS1_files)
     
     #
-    #breakpoint()
+
     flux_files = [pycdf.CDF(str(i)) for i in EAS1_files]
 
     
@@ -122,7 +120,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     
     #convert the intrument angle coordinates to heliocentric
-    
+    #breakpoint()
     #%%process look directions-only EAS1 ovelaps
     EPD_XYZ=epd_xyz_sectors 
     #retrieve step xyz
@@ -142,7 +140,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     m0=1.2566*10.**(-6.)
     kb=1.3806*10.**(-23.)
     ###############
-    #These are the STEP FOV values 
+    #These are the STEP FOV values in the RTN frame
     elevation_min = -27
     elevation_max = 27
     azimuth_min = 21
@@ -183,8 +181,6 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     
     ###############
-    '''
-    #plot the sky maps
     ax = plt.axes(projection='3d')
     ax.scatter3D(EAS1_Xf,EAS1_Yf,EAS1_Zf,facecolors='none', edgecolors='blue',rasterized=True)
     ax.scatter3D(1.1*EPD_X,1.1*EPD_Y,1.1*EPD_Z,color='black',rasterized=True)
@@ -207,7 +203,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     ax.set_ylabel('Vy_SRF')
     ax.set_zlabel('Vz_SRF')
     plt.show()
-    '''
+    
     #convert the xyz back to angles to allow easier filtering
     Els=np.arcsin((EAS1_Xs+EAS1_Ys)/(-2*np.cos(45.*rad)))
     
@@ -261,7 +257,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     
     
-    # reshape to more sensible order
+    # Repeat for the second set
     #time,el,az,energy
     combo_files = np.transpose(combo_files, (0, 1, 3, 2))
     flux_files = np.transpose(flux_files, (0, 1, 3, 2))
@@ -283,8 +279,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
         #breakpoint()
     no_pix=np.count_nonzero(el_mask)*np.count_nonzero(az_mask)
     # Sum over azimuth (axis 2) and elevation (axis 1) for the second set
-    curve = np.mean(combo_files, axis=(1,2))#/no_pix
-    flux_curve = np.mean(flux_files, axis=(1,2))#/no_pix
+    curve = np.sum(np.sum(combo_files, axis=2), axis=1)/no_pix
+    flux_curve = np.sum(np.sum(flux_files, axis=2), axis=1)/no_pix
     
     
     count_curve_raw=np.array(curve)
@@ -292,10 +288,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     #print(count_curve_raw.shape)
     
-    if len(energies)!=64:#sometimes energies as array, sometimes as a single list. this ensures we get 64 length array
-        combo_energies=np.array(energies[0])#each time has same energy bins so use first
-    else: 
-        combo_energies=np.array(energies)
+    combo_energies=np.array(energies)
+    
     #breakpoint()
     #%%sawtooth correction, only keep even index bins
     count_curve_valid=list()
@@ -304,7 +298,6 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     valid_widths=list()
     energy_lims_eas=list()
     for count, energy in enumerate(combo_energies):
-        #breakpoint()
         if count % 2 == 0: #if is even
             count_curve_valid.append([i[count] for i in count_curve_raw])
             flux_curve_valid.append([i[count] for i in flux_curve_raw])
@@ -345,20 +338,11 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     sqrt_curve=np.sqrt(count_curve)
     
     temp_curve=sqrt_curve/(0.92e-3*7.8e-6)#sqrt(c)/dtG
-    #G from verscharen verscharen personal comms
-
-    uncert_curve=temp_curve/(valid_widths[None,:])
-    uncert_curve=uncert_curve/10 #unit conversion
-    #breakpoint()
-
     
-    #%%cut back down to just day of interest
+    uncert_curve=temp_curve/valid_widths[None,:]
     
     
-    mask=(times_flux>=dt.datetime.strptime(tstart_set,"%Y/%m/%d %H:%M:%S")) & (times_flux<dt.datetime.strptime(tend_set,"%Y/%m/%d %H:%M:%S") )
-    times_flux=times_flux[mask]
-    flux_curve=flux_curve[mask,:]
-    uncert_curve=uncert_curve[mask,:]
-    #Can outputbin limits too
-    return times_flux,valid_energies,flux_curve,uncert_curve#,np.array(energy_lims_eas)/1000
+    
+    
+    return times_flux,valid_energies,flux_curve,uncert_curve,np.array(energy_lims_eas)/1000
 

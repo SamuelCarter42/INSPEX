@@ -126,6 +126,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     #%%process look directions-only EAS1 ovelaps
     EPD_XYZ=epd_xyz_sectors 
     #retrieve step xyz
+    #breakpoint()
     EPD_X=EPD_XYZ[:,0]
     EPD_Y=EPD_XYZ[:,1]
     EPD_Z=EPD_XYZ[:,2]
@@ -360,5 +361,5 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     flux_curve=flux_curve[mask,:]
     uncert_curve=uncert_curve[mask,:]
     #Can outputbin limits too
-    return times_flux,valid_energies,flux_curve,uncert_curve#,np.array(energy_lims_eas)/1000
+    return times_flux,valid_energies,flux_curve,uncert_curve,np.array(energy_lims_eas)/1000
 

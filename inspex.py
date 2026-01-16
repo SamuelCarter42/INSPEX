@@ -4457,7 +4457,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        time_series_time,time_series_energies,time_series_data,time_series_uncert=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:
             time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
@@ -4481,7 +4481,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:#resample eas
             eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
         
@@ -4918,7 +4918,7 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        time_series_time,time_series_energies,time_series_data,time_series_uncert=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
     
     
     

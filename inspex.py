@@ -899,6 +899,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             result = fitter_local.minimize(
                     method='least_squares',
                     max_nfev=50000,
+                    x_scale='jac',
                     ftol=1e-9, xtol=1e-9, gtol=1e-9)
             
         progress_win.destroy()  # Closes the window, allows wait_window to continue

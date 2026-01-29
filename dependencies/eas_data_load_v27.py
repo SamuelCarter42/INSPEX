@@ -42,7 +42,7 @@ sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Producti
 
 
 
-def EAS_data_load(date_for_spec,tstart,tend,energy_mids_avg,epd_xyz_sectors,low_e_cutoff=0.8):
+def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
 
 
@@ -344,7 +344,7 @@ def EAS_data_load(date_for_spec,tstart,tend,energy_mids_avg,epd_xyz_sectors,low_
     
     
 
-    mask=(times_flux>=dt.datetime.strptime(tstart_set,"%Y/%m/%d %H:%M:%S")) & (times_flux<dt.datetime.strptime(tend_set,"%Y/%m/%d %H:%M:%S") )
+    mask=(times_flux>=dt.datetime.strptime(tstart,"%Y/%m/%d %H:%M:%S")) & (times_flux<dt.datetime.strptime(tend,"%Y/%m/%d %H:%M:%S") )
     times_flux=times_flux[mask]
     flux_curve=flux_curve[mask,:]
     uncert_curve=uncert_curve[mask,:]

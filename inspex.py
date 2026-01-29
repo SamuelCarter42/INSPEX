@@ -1246,7 +1246,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     fig_resids =plt.Figure(figsize=plot_wind_size, dpi=300)
     ax_resids= fig_resids.add_subplot(1, 1, 1)
 
-    
+    global resids
     resids=resid_calc(pars,x_data_sliced,y_data_sliced,uncert_sliced,header)
 
     ax_resids.plot(list(x_data_sliced),resids,marker='o')
@@ -1256,8 +1256,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_resids.grid()
     
     #enable this to save residuals-must change file name-make a button soon
-    #with open('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/2nd year/paper comments/resids/'+f'5min flue FAF 5pl resids.pkl', 'w+b') as f:
-        #pickle.dump([resids], f)
+#    with open('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/2nd year/paper comments/resids/'+f'TS fitted resids.pkl', 'w+b') as f:
+ #       pickle.dump([resids], f)
      
      
     #fig_resids.savefig(fname=.png',bbox_inches='tight')
@@ -4117,7 +4117,24 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 
             
             summ_window.mainloop()
-    
+     
+    def resid_save_hndl():
+        try:
+            fit_summary
+            
+        except NameError:tk.messagebox.showwarning("No Results", "No residuals yet, run a fit first")
+
+        
+        else:
+            #organise into dataframe
+            spec_dict={'energies':list(x_data) ,'resids': list(resids),'date':[str(date) for i in list(x_data)],'inst':[inst for i in list(x_data)],'spec_type':[spec_type for i in list(x_data)]}
+        
+            spec_frame=pd.DataFrame(spec_dict)
+            files = [('Text Document','*.txt')]
+            file_obj=tk.filedialog.asksaveasfile(filetypes = files, defaultextension=".txt")
+            spec_frame.to_csv(file_obj)
+
+            
     def on_selection(event):
         selection = combo.get()
         option_handlers={"Load Parameters":load_btn_hndl,
@@ -4126,10 +4143,11 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                         "Save Spectrum":spec_save_hndl,
                         "Preview Parameters":preview_btn_hndl,
                         "Perform Fit":fit_btn_hndl,
-                        "Summary of fit statistics and uncerainties":fit_sum_hndl}
+                        "Summary of fit statistics and uncerainties":fit_sum_hndl,
+                        "Save residuals":resid_save_hndl}
         option_handlers[selection]()
         
-    fit_window_options=["Load Parameters","Save Parameters","Close (and proceed to next interval if set)","Save Spectrum","Preview Parameters","Perform Fit","Summary of fit statistics and uncerainties"]
+    fit_window_options=["Load Parameters","Save Parameters","Close (and proceed to next interval if set)","Save Spectrum","Save residuals","Preview Parameters","Perform Fit","Summary of fit statistics and uncerainties"]
     combo=ttk.Combobox(window_buttons, values=fit_window_options)
     combo.bind('<<ComboboxSelected>>', on_selection)
     combo.pack()
@@ -4572,7 +4590,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
             label=f'{round(time_series_energies[channel],2)} keV'
             
-            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=45)#
+            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=30,fontsize=5)#
         
 
 

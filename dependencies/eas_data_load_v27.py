@@ -42,9 +42,10 @@ sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Producti
 
 
 
-def EAS_data_load(date_for_spec,tstart,tend,energy_mids_avg,epd_xyz_sectors,low_e_cutoff=0.8):
+def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
-
+    tstart_set=tstart
+    tend_set=tend
 
     #must load day before and after too, to avoid data gaps
     

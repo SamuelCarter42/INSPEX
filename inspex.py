@@ -123,7 +123,6 @@ def load_early_step_data(start_time, end_time):
 
 
     step_array_raw=integ_flux_step-mag_flux_step
-
     #corrections
     step_array=step_array_raw.copy()
 

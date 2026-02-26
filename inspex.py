@@ -597,7 +597,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
           x_data_sliced.append(E)
           y_data_sliced.append(y_data[pos])
           uncert_sliced.append(uncert[pos])
-
+    #save fitted energy range so that it can be retireved
     #build test function according to the user set options
     global test_func
     def test_func(x,parvals,header): # this function is the one we are trying to fit to the data
@@ -1255,9 +1255,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_resids.set_xlabel('Energy (keV)')
     ax_resids.grid()
     
-    #enable this to save residuals-must change file name-make a button soon
-#    with open('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/2nd year/paper comments/resids/'+f'TS fitted resids.pkl', 'w+b') as f:
- #       pickle.dump([resids], f)
+
      
      
     #fig_resids.savefig(fname=.png',bbox_inches='tight')
@@ -1267,7 +1265,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
 
 
-    return(parvals,param_uncert_calced)
+    return(parvals,param_uncert_calced,x_data_sliced)
 
 
 
@@ -3220,8 +3218,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 
 
                         #conduct fitting process
-                        
-                        parvals,param_uncert_calced=fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,spec_type)
+                        global x_data_E_sliced
+                        parvals,param_uncert_calced,x_data_E_sliced=fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,spec_type)
                         
 
                         #add the results into the entry boxes
@@ -4127,8 +4125,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
         
         else:
             #organise into dataframe
-            spec_dict={'energies':list(x_data) ,'resids': list(resids),'date':[str(date) for i in list(x_data)],'inst':[inst for i in list(x_data)],'spec_type':[spec_type for i in list(x_data)]}
-        
+            spec_dict={'energies':list(x_data_E_sliced) ,'resids': list(resids),'date':[str(date) for i in list(x_data_E_sliced)],'inst':[inst for i in list(x_data_E_sliced)],'spec_type':[spec_type for i in list(x_data_E_sliced)]}
             spec_frame=pd.DataFrame(spec_dict)
             files = [('Text Document','*.txt')]
             file_obj=tk.filedialog.asksaveasfile(filetypes = files, defaultextension=".txt")
@@ -5319,7 +5316,8 @@ def intervals_select(inst,start_time,end_time,spec_type_sel):
             for count,i in enumerate(spectra[1:]):#fit all the spectra
                 spec=i[0]
                 spec_uncert=i[1]
-                parvals,param_uncert_calced=fitting(header,output,vary,minval,maxval,time_series_energies,spec,spec_uncert,fitmin,fitmax)
+                global x_data_E_sliced
+                parvals,param_uncert_calced,x_data_E_sliced=fitting(header,output,vary,minval,maxval,time_series_energies,spec,spec_uncert,fitmin,fitmax)
                 #fit_window.quit()
                 #preview_window.quit()
                 fitted_params[count+1,0]=parvals

@@ -4748,8 +4748,8 @@ def instrument_choice():#function for the instrument choice window
     OPTIONS = [
         "SolO EPD STEP",
         "STEREO STE",
-        "SolO SWA EAS, alligned to EPD STEP",
-        "Combined SolO SWA EAS and EPD STEP"
+        "[IDL REQUIRED] SolO SWA EAS, alligned to EPD STEP",
+        "[IDL REQUIRED] Combined SolO SWA EAS and EPD STEP"
         ]     
     variable = tk.StringVar()
     variable.set(OPTIONS[0]) # default value

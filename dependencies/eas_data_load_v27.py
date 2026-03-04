@@ -183,6 +183,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     
     
     ###############
+    '''
     ax = plt.axes(projection='3d')
     ax.scatter3D(EAS1_Xf,EAS1_Yf,EAS1_Zf,facecolors='none', edgecolors='blue',rasterized=True)
     ax.scatter3D(1.1*EPD_X,1.1*EPD_Y,1.1*EPD_Z,color='black',rasterized=True)
@@ -205,7 +206,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     ax.set_ylabel('Vy_SRF')
     ax.set_zlabel('Vz_SRF')
     plt.show()
-    
+    '''
+
     #convert the xyz back to angles to allow easier filtering
     Els=np.arcsin((EAS1_Xs+EAS1_Ys)/(-2*np.cos(45.*rad)))
     

@@ -9,7 +9,7 @@ This software was written using Anaconda, and I reccomend that distribution is u
 
 + pickle
 
-For loading Solar Orbiter SWA EAS data, IDL is required. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
+For loading STEREO STE, IDL is required. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
 
 Intended as an in-situ equivalent to OSPEX for HXRs, this software provides a user-friendly pipeline to download, analyse and fit in-situ electron spectra. The guiding methodology is laid out in Carter et al 2025 (in prep).
 

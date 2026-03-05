@@ -4747,9 +4747,9 @@ def instrument_choice():#function for the instrument choice window
     greeting.pack()
     OPTIONS = [
         "SolO EPD STEP",
-        "STEREO STE",
-        "[IDL REQUIRED] SolO SWA EAS, alligned to EPD STEP",
-        "[IDL REQUIRED] Combined SolO SWA EAS and EPD STEP"
+        "[IDL REQUIRED] STEREO STE",
+        "SolO SWA EAS, alligned to EPD STEP",
+        "Combined SolO SWA EAS and EPD STEP"
         ]     
     variable = tk.StringVar()
     variable.set(OPTIONS[0]) # default value
@@ -4855,7 +4855,7 @@ def instrument_choice():#function for the instrument choice window
             selected_func=variable.get()
             if selected_func=='SolO EPD STEP':
                 inst="SolO-STEP"
-            if selected_func=='STEREO STE':
+            if selected_func=='[IDL REQUIRED] STEREO STE':
                 inst="STEREO STE"
             if selected_func=='SolO SWA EAS, alligned to EPD STEP':
                 inst="SolO-EAS"

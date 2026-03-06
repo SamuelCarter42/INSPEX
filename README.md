@@ -4,10 +4,13 @@ Python Package Dependencies:
 This software was written using Anaconda, and I reccomend that distribution is used to run the software. In addition to the packages included in that ditribution, the following packages are also required:
 
 + lmfit
-
-+ solo_epd_loader
-
++ solo_epd_loader (gieseler et al 2025)
 + pickle
++ numdiftools
++ spiceypy
++ reproject
++ sunpy_soar
++ spacepy
 
 For loading STEREO STE, IDL is required. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
 

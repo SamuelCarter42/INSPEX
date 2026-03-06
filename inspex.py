@@ -162,7 +162,11 @@ def load_early_step_data(start_time, end_time):
 
 
     
-    
+    #slice data down to range requested from full days
+    mask=(step_times>=startdate) & (step_times<enddate )
+    step_times=step_times[mask]
+    step_array=step_array[mask,:]
+    step_uncert_array=step_uncert_array[mask,:]
     
     
     
@@ -265,7 +269,11 @@ def load_late_step_data(start_time, end_time):
         correction_factor=correction_table[channel]
         step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts
 
-        
+    #slice data down to range requested from full days
+    mask=(step_times>=startdate) & (step_times<enddate )
+    step_times=step_times[mask]
+    step_array=step_array[mask,:]
+    step_uncert_array=step_uncert_array[mask,:]
     
     
     return step_times,energy_mids_step,step_array,step_uncert_array,epd_xyz_sectors,np.array(energy_lims)
@@ -4393,12 +4401,16 @@ def interval_spec_gen(time_series_time,time_series_energies,time_series_data,tim
 def custom_resampler(arraylike):
         
     arraylike2=np.nanmean(arraylike)
+    if np.isnan(arraylike2).any():
+        arraylike2=np.nan#this should prevent the data from being plotted while maintaining consitent length
 
     return (arraylike2)
 
 def custom_resampler_uncert(arraylike):
+    try:#if the uncert resampling gets broken, this should avoid the issue
+        arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
+    except:arraylike2=0
         
-    arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
     if np.isnan(arraylike2).any():
         arraylike2=0
     return (arraylike2)
@@ -4471,7 +4483,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         [-0.7384,  0.6744, -0.    ],
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
-        
+        #breakpoint()
         time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:
             time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
@@ -4511,12 +4523,12 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
-        
+        #breakpoint()
         #combine the data into one array
-        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data,), axis=1)
+        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data), axis=1)
         time_series_uncert=np.concatenate((eas_time_series_uncert,step_time_series_uncert), axis=1)
         time_series_energies=np.concatenate((eas_time_series_energies,step_time_series_energies))
-        #breakpoint()
+        #
         
     #slice loaded data to range selected by user, as generally loads in full days    
     #set range to user defined fitting limits
@@ -4526,7 +4538,11 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     for pos,time in enumerate(time_series_time):
         #breakpoint()
         #print(time)
-        time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
+        #accoutnfor potential differences in time format
+        if 'T' in str(time)[:-3]:
+            time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
+        else:time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%d %H:%M:%S.%f")
+        
         if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
             x_data_sliced.append(time)
             y_data_sliced.append(time_series_data[pos][:])
@@ -4583,7 +4599,10 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         upper_x=ax_TS.get_xlim()[1]#get the x axis limits 
         ax_TS.cla() #clears the plot but leaves the window open 
         
-        for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
+        if inst=="SolO-STEP":plotchans=[0, 4, 8, 12, 16, 20, 24, 28,30]
+        else:plotchans=np.linspace(0, len(time_series_energies) - 1, 9, dtype=int)
+        #breakpoint()
+        for channel in plotchans:        
             label=f'{round(time_series_energies[channel],2)} keV'
             
             pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=30,fontsize=5)#
@@ -4703,7 +4722,9 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     
     
     #for a selection of energy channels, convert from array to pd.series, resample for clarity then plot with appropriate label
-    for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
+    if inst=="SolO-STEP":plotchans=[0, 4, 8, 12, 16, 20, 24, 28,30]
+    else:plotchans=np.linspace(0, len(time_series_energies) - 1, 9, dtype=int)
+    for channel in plotchans:
         pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=f'{round(time_series_energies[channel],2)} keV')#
     ax_TS.set_ylim(bottom=1)
     #fig_TS.autofmt_xdate()
@@ -4747,7 +4768,7 @@ def instrument_choice():#function for the instrument choice window
     greeting.pack()
     OPTIONS = [
         "SolO EPD STEP",
-        "STEREO STE",
+        "[IDL REQUIRED] STEREO STE",
         "SolO SWA EAS, alligned to EPD STEP",
         "Combined SolO SWA EAS and EPD STEP"
         ]     
@@ -4855,7 +4876,7 @@ def instrument_choice():#function for the instrument choice window
             selected_func=variable.get()
             if selected_func=='SolO EPD STEP':
                 inst="SolO-STEP"
-            if selected_func=='STEREO STE':
+            if selected_func=='[IDL REQUIRED] STEREO STE':
                 inst="STEREO STE"
             if selected_func=='SolO SWA EAS, alligned to EPD STEP':
                 inst="SolO-EAS"
@@ -4866,7 +4887,7 @@ def instrument_choice():#function for the instrument choice window
             res_sel=res_var.get()
             if res_sel=="No Resampling":
                 if inst=="SolO-EAS+STEP":
-                    tk.messagebox.showerror("Invalid Input",'Combined instruments must have some resapling to align timings')
+                    tk.messagebox.showerror("Invalid Input",'Combined instruments must have some resampling to align timings')
                 else:resample_dur=None#no resampling
             else:
                 resample_dur=res_sel.split()[0]+"min"
@@ -4879,6 +4900,7 @@ def instrument_choice():#function for the instrument choice window
             spec_type_sel=var_spec_type.get()
             
             if spec_type_sel=="fluence" or spec_type_sel=="peak flux":
+                
                 time_rng_select(inst,start_time,end_time,spec_type_sel,resample_dur)#runs time range selection function
             
             elif spec_type_sel=="flux at set time(s)":

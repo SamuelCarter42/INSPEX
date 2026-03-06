@@ -162,7 +162,11 @@ def load_early_step_data(start_time, end_time):
 
 
     
-    
+    #slice data down to range requested from full days
+    mask=(step_times>=startdate) & (step_times<enddate )
+    step_times=step_times[mask]
+    step_array=step_array[mask,:]
+    step_uncert_array=step_uncert_array[mask,:]
     
     
     
@@ -265,7 +269,11 @@ def load_late_step_data(start_time, end_time):
         correction_factor=correction_table[channel]
         step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts
 
-        
+    #slice data down to range requested from full days
+    mask=(step_times>=startdate) & (step_times<enddate )
+    step_times=step_times[mask]
+    step_array=step_array[mask,:]
+    step_uncert_array=step_uncert_array[mask,:]
     
     
     return step_times,energy_mids_step,step_array,step_uncert_array,epd_xyz_sectors,np.array(energy_lims)
@@ -4393,12 +4401,16 @@ def interval_spec_gen(time_series_time,time_series_energies,time_series_data,tim
 def custom_resampler(arraylike):
         
     arraylike2=np.nanmean(arraylike)
+    if np.isnan(arraylike2).any():
+        arraylike2=np.nan#this should prevent the data from being plotted while maintaining consitent length
 
     return (arraylike2)
 
 def custom_resampler_uncert(arraylike):
+    try:#if the uncert resampling gets broken, this should avoid the issue
+        arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
+    except:arraylike2=0
         
-    arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
     if np.isnan(arraylike2).any():
         arraylike2=0
     return (arraylike2)
@@ -4511,9 +4523,9 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
-        breakpoint()
+        #breakpoint()
         #combine the data into one array
-        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data,), axis=1)
+        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data), axis=1)
         time_series_uncert=np.concatenate((eas_time_series_uncert,step_time_series_uncert), axis=1)
         time_series_energies=np.concatenate((eas_time_series_energies,step_time_series_energies))
         #

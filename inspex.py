@@ -4846,7 +4846,7 @@ def instrument_choice():#function for the instrument choice window
     #create spectrum load button
     load_spec_button=tk.Button(
     master=window_inst,
-    text="Load Previously created spectrum",
+    text="Load Previously created INSPEX (.txt) spectrum",
     width=25,
     height=5,
     bg="white",

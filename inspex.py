@@ -4825,20 +4825,31 @@ def instrument_choice():#function for the instrument choice window
     
     
     
-    #define spectrum loading
+    #define spectrum loading, with file validation
+    def spec_file_validate(file_obj):
+        path,exten=os.path.splitext(file_obj.name)
+        if exten=='.txt' or exten=='.csv':
+            return True
+        else:return False
+        
+        
+        
     def load_spec_hndl():
         file_obj=tk.filedialog.askopenfile()
-        spec_df=pd.read_csv(file_obj)
-        file_obj.close()
-        load_energies=spec_df['energies'].values
-        load_fluxes=spec_df['fluxes'].values
-        load_uncerts=spec_df['errors'].values
-        date=spec_df['date'].values[0]
-        inst=spec_df['inst'].values[0]
-        spec_type=spec_df['spec_type'].values[0]
-        window_inst.destroy()#closes current window
-    
-        inspex(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
+        if not spec_file_validate(file_obj):#if correctly formatted 
+            tk.messagebox.showerror("Invalid Input",'Loaded spectrum must be .txt in correct format, saved via the fitting GUI')
+        else:        
+            spec_df=pd.read_csv(file_obj)
+            file_obj.close()
+            load_energies=spec_df['energies'].values
+            load_fluxes=spec_df['fluxes'].values
+            load_uncerts=spec_df['errors'].values
+            date=spec_df['date'].values[0]
+            inst=spec_df['inst'].values[0]
+            spec_type=spec_df['spec_type'].values[0]
+            window_inst.destroy()#closes current window
+        
+            inspex(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
 
     
 
@@ -4847,7 +4858,7 @@ def instrument_choice():#function for the instrument choice window
     load_spec_button=tk.Button(
     master=window_inst,
     text="Load Previously created INSPEX (.txt) spectrum",
-    width=25,
+    width=35,
     height=5,
     bg="white",
     fg="black",

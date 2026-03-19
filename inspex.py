@@ -1095,12 +1095,13 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     #open a window, around which the main program section is built
     
-    plot_wind_size=(4,3.5)#define the window size for the plots
+    plot_wind_size=(6,4)#define the window size for the plots
     
     fit_window=tk.Toplevel()
     fit_window.title('Fit window')
-    
-    fig_fit =plt.Figure()#figsize=plot_wind_size, dpi=200)
+    fit_window.rowconfigure(0, weight=1)
+    fit_window.columnconfigure(0, weight=1)
+    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_fit= fig_fit.add_subplot()#1, 1, 1)
     
 
@@ -1235,7 +1236,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_fit.grid()
     canvas_fit = FigureCanvasTkAgg(fig_fit, master=fit_window) 
     canvas_fit.draw()  
-    canvas_fit.get_tk_widget().pack()
+    canvas_fit.get_tk_widget().pack(fill="both",expand=True)
     
     #add buttton to save figure
     def fig_save_hndl():
@@ -1250,7 +1251,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #second plot showing the residuals of the fit
     
     resid_window=tk.Toplevel()
-    fig_resids =plt.Figure(figsize=plot_wind_size, dpi=300)
+    resid_window.rowconfigure(0, weight=1)
+    resid_window.columnconfigure(0, weight=1)
+    fig_resids =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_resids= fig_resids.add_subplot(1, 1, 1)
 
     global resids
@@ -1268,7 +1271,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #fig_resids.savefig(fname=.png',bbox_inches='tight')
     canvas_resids = FigureCanvasTkAgg(fig_resids, master=resid_window) 
     canvas_resids.draw()  
-    canvas_resids.get_tk_widget().pack()
+    canvas_resids.get_tk_widget().pack(fill="both",expand=True)
     
 
 
@@ -1523,12 +1526,14 @@ def param_preview(x_data,y_data,parvals,header):
 
     #open a new figure in a new window
     
-    plot_wind_size=(4,3.5)#define the window size for the plots
+    plot_wind_size=(6,4)#define the window size for the plots
     
     global preview_window
     preview_window=tk.Toplevel()
     preview_window.title('Preview window')
-    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=300)
+    preview_window.rowconfigure(0, weight=1)
+    preview_window.columnconfigure(0, weight=1)
+    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_fit= fig_fit.add_subplot(1, 1, 1)
     
 
@@ -1648,7 +1653,7 @@ def param_preview(x_data,y_data,parvals,header):
     ax_fit.grid()
     canvas_fit = FigureCanvasTkAgg(fig_fit, master=preview_window) 
     canvas_fit.draw()  
-    canvas_fit.get_tk_widget().pack()
+    canvas_fit.get_tk_widget().pack(fill="both",expand=True)
 
 #%%save load params from previous fits
 
@@ -4210,11 +4215,15 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
 
     #show the spectrum
     
-    plot_wind_size=(4,3)#define the window size for the plots
+    plot_wind_size=(6,4)#define the window size for the plots
 
     fit_window=tk.Toplevel()
     fit_window.title('Initial fit preview')
-    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=300)
+    # Make window resizable
+    fit_window.rowconfigure(0, weight=1)
+    fit_window.columnconfigure(0, weight=1) 
+    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
+    fig_fit.tight_layout()
     ax_fit= fig_fit.add_subplot(1, 1, 1)
 
 
@@ -4241,7 +4250,7 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
     global canvas_fit
     canvas_fit = FigureCanvasTkAgg(fig_fit, master=fit_window) 
     canvas_fit.draw()  
-    canvas_fit.get_tk_widget().pack()
+    canvas_fit.get_tk_widget().pack(fill="both",expand=True)
     
     
     

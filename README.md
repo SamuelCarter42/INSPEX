@@ -21,7 +21,7 @@ INSPEX can be used in two ways: by calling the script after the user has generat
 
 Data Loading<br />
 To begin the GUI method, call the function instrument_choice() at the console after running the INSPEX script. This will open a GUI window with options for loading data. Here, the user has the option to load data using INSPEX's built in loading tools, which currently includes SolO STEP and EAS, and STEREO STE-D. Before proceeding to the next stage, the user must also select a method of spectrum generation from instantaneous, peak flux, or fluence. This will change the following window's functions. There is also an option to load a spectrum generated during a previous run of INSPEX, skipping the generation stage and going straight to the fitting stage. This only loads .txt spectral files from INSPEX, and cannot handle other file types or raw time series data. 
-
+PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.
 Spectral Generation<br />
 Once the time series data and spectral type are selected, we generate the spectrum. The user can use sliders or entry fields to select the background range, and integration time or instantaneous points depending on the method selected. For the instantaneous method, the user can select a number of different points and fit each in turn. These can be manually selected or generated at a regular time interval. When loading the joint EAS/STEP product, the spectra are cross-calibrated by taking an average of each instrument's flux/fluence in their energy overlap range, and multiplying the EAS data by the difference factor such that the average of that range is the same. We call this the flux alignment factor, or FAF.
 

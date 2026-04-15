@@ -11,6 +11,7 @@ This software was written using Anaconda, and I reccomend that distribution is u
 + reproject
 + sunpy_soar
 + spacepy
++ emcee
 
 For loading STEREO STE, IDL is required. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
 

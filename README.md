@@ -20,6 +20,7 @@ Intended as an in-situ equivalent to OSPEX for HXRs, this software provides a us
 INSPEX can be used in two ways: by calling the script after the user has generated their own spectrum, and by using the GUI to complete the analysis from the start. 
 
 Data Loading<br />
+PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.
 To begin the GUI method, call the function instrument_choice() at the console after running the INSPEX script. This will open a GUI window with options for loading data. Here, the user has the option to load data using INSPEX's built in loading tools, which currently includes SolO STEP and EAS, and STEREO STE-D. Before proceeding to the next stage, the user must also select a method of spectrum generation from instantaneous, peak flux, or fluence. This will change the following window's functions. There is also an option to load a spectrum generated during a previous run of INSPEX, skipping the generation stage and going straight to the fitting stage. This only loads .txt spectral files from INSPEX, and cannot handle other file types or raw time series data. PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.<br />
 
 Spectral Generation<br />

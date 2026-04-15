@@ -7,8 +7,8 @@ from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.io import fits
 from astropy.time import Time, TimeDelta
 
-import spiceypy
-from sunpy.coordinates import spice as spice
+#import spiceypy
+#from sunpy.coordinates import spice as spice
 
 from sunpy.data import cache
 from sunpy.time import parse_time

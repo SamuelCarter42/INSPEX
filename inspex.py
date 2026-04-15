@@ -162,7 +162,11 @@ def load_early_step_data(start_time, end_time):
 
 
     
-    
+    #slice data down to range requested from full days
+    mask=(step_times>=startdate) & (step_times<enddate )
+    step_times=step_times[mask]
+    step_array=step_array[mask,:]
+    step_uncert_array=step_uncert_array[mask,:]
     
     
     
@@ -265,7 +269,11 @@ def load_late_step_data(start_time, end_time):
         correction_factor=correction_table[channel]
         step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts
 
-        
+    #slice data down to range requested from full days
+    mask=(step_times>=startdate) & (step_times<enddate )
+    step_times=step_times[mask]
+    step_array=step_array[mask,:]
+    step_uncert_array=step_uncert_array[mask,:]
     
     
     return step_times,energy_mids_step,step_array,step_uncert_array,epd_xyz_sectors,np.array(energy_lims)
@@ -1087,12 +1095,13 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     #open a window, around which the main program section is built
     
-    plot_wind_size=(4,3.5)#define the window size for the plots
+    plot_wind_size=(6,4)#define the window size for the plots
     
     fit_window=tk.Toplevel()
     fit_window.title('Fit window')
-    
-    fig_fit =plt.Figure()#figsize=plot_wind_size, dpi=200)
+    fit_window.rowconfigure(0, weight=1)
+    fit_window.columnconfigure(0, weight=1)
+    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_fit= fig_fit.add_subplot()#1, 1, 1)
     
 
@@ -1227,7 +1236,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_fit.grid()
     canvas_fit = FigureCanvasTkAgg(fig_fit, master=fit_window) 
     canvas_fit.draw()  
-    canvas_fit.get_tk_widget().pack()
+    canvas_fit.get_tk_widget().pack(fill="both",expand=True)
     
     #add buttton to save figure
     def fig_save_hndl():
@@ -1242,7 +1251,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #second plot showing the residuals of the fit
     
     resid_window=tk.Toplevel()
-    fig_resids =plt.Figure(figsize=plot_wind_size, dpi=300)
+    resid_window.rowconfigure(0, weight=1)
+    resid_window.columnconfigure(0, weight=1)
+    fig_resids =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_resids= fig_resids.add_subplot(1, 1, 1)
 
     global resids
@@ -1260,7 +1271,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #fig_resids.savefig(fname=.png',bbox_inches='tight')
     canvas_resids = FigureCanvasTkAgg(fig_resids, master=resid_window) 
     canvas_resids.draw()  
-    canvas_resids.get_tk_widget().pack()
+    canvas_resids.get_tk_widget().pack(fill="both",expand=True)
     
 
 
@@ -1515,12 +1526,14 @@ def param_preview(x_data,y_data,parvals,header):
 
     #open a new figure in a new window
     
-    plot_wind_size=(4,3.5)#define the window size for the plots
+    plot_wind_size=(6,4)#define the window size for the plots
     
     global preview_window
     preview_window=tk.Toplevel()
     preview_window.title('Preview window')
-    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=300)
+    preview_window.rowconfigure(0, weight=1)
+    preview_window.columnconfigure(0, weight=1)
+    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_fit= fig_fit.add_subplot(1, 1, 1)
     
 
@@ -1640,7 +1653,7 @@ def param_preview(x_data,y_data,parvals,header):
     ax_fit.grid()
     canvas_fit = FigureCanvasTkAgg(fig_fit, master=preview_window) 
     canvas_fit.draw()  
-    canvas_fit.get_tk_widget().pack()
+    canvas_fit.get_tk_widget().pack(fill="both",expand=True)
 
 #%%save load params from previous fits
 
@@ -4202,11 +4215,15 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
 
     #show the spectrum
     
-    plot_wind_size=(4,3)#define the window size for the plots
+    plot_wind_size=(6,4)#define the window size for the plots
 
     fit_window=tk.Toplevel()
     fit_window.title('Initial fit preview')
-    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=300)
+    # Make window resizable
+    fit_window.rowconfigure(0, weight=1)
+    fit_window.columnconfigure(0, weight=1) 
+    fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
+    fig_fit.tight_layout()
     ax_fit= fig_fit.add_subplot(1, 1, 1)
 
 
@@ -4233,7 +4250,7 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
     global canvas_fit
     canvas_fit = FigureCanvasTkAgg(fig_fit, master=fit_window) 
     canvas_fit.draw()  
-    canvas_fit.get_tk_widget().pack()
+    canvas_fit.get_tk_widget().pack(fill="both",expand=True)
     
     
     
@@ -4393,12 +4410,16 @@ def interval_spec_gen(time_series_time,time_series_energies,time_series_data,tim
 def custom_resampler(arraylike):
         
     arraylike2=np.nanmean(arraylike)
+    if np.isnan(arraylike2).any():
+        arraylike2=np.nan#this should prevent the data from being plotted while maintaining consitent length
 
     return (arraylike2)
 
 def custom_resampler_uncert(arraylike):
+    try:#if the uncert resampling gets broken, this should avoid the issue
+        arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
+    except:arraylike2=0
         
-    arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
     if np.isnan(arraylike2).any():
         arraylike2=0
     return (arraylike2)
@@ -4471,7 +4492,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         [-0.7384,  0.6744, -0.    ],
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
-        
+        #breakpoint()
         time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:
             time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
@@ -4511,12 +4532,12 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
-        
+        #breakpoint()
         #combine the data into one array
-        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data,), axis=1)
+        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data), axis=1)
         time_series_uncert=np.concatenate((eas_time_series_uncert,step_time_series_uncert), axis=1)
         time_series_energies=np.concatenate((eas_time_series_energies,step_time_series_energies))
-        #breakpoint()
+        #
         
     #slice loaded data to range selected by user, as generally loads in full days    
     #set range to user defined fitting limits
@@ -4526,7 +4547,11 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     for pos,time in enumerate(time_series_time):
         #breakpoint()
         #print(time)
-        time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
+        #accoutnfor potential differences in time format
+        if 'T' in str(time)[:-3]:
+            time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
+        else:time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%d %H:%M:%S.%f")
+        
         if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
             x_data_sliced.append(time)
             y_data_sliced.append(time_series_data[pos][:])
@@ -4583,7 +4608,10 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         upper_x=ax_TS.get_xlim()[1]#get the x axis limits 
         ax_TS.cla() #clears the plot but leaves the window open 
         
-        for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
+        if inst=="SolO-STEP":plotchans=[0, 4, 8, 12, 16, 20, 24, 28,30]
+        else:plotchans=np.linspace(0, len(time_series_energies) - 1, 9, dtype=int)
+        #breakpoint()
+        for channel in plotchans:        
             label=f'{round(time_series_energies[channel],2)} keV'
             
             pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=30,fontsize=5)#
@@ -4703,7 +4731,9 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     
     
     #for a selection of energy channels, convert from array to pd.series, resample for clarity then plot with appropriate label
-    for channel in [0, 4, 8, 12, 16, 20, 24, 28, 30]:
+    if inst=="SolO-STEP":plotchans=[0, 4, 8, 12, 16, 20, 24, 28,30]
+    else:plotchans=np.linspace(0, len(time_series_energies) - 1, 9, dtype=int)
+    for channel in plotchans:
         pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=f'{round(time_series_energies[channel],2)} keV')#
     ax_TS.set_ylim(bottom=1)
     #fig_TS.autofmt_xdate()
@@ -4747,7 +4777,7 @@ def instrument_choice():#function for the instrument choice window
     greeting.pack()
     OPTIONS = [
         "SolO EPD STEP",
-        "STEREO STE",
+        "[IDL REQUIRED] STEREO STE",
         "SolO SWA EAS, alligned to EPD STEP",
         "Combined SolO SWA EAS and EPD STEP"
         ]     
@@ -4804,20 +4834,31 @@ def instrument_choice():#function for the instrument choice window
     
     
     
-    #define spectrum loading
+    #define spectrum loading, with file validation
+    def spec_file_validate(file_obj):
+        path,exten=os.path.splitext(file_obj.name)
+        if exten=='.txt' or exten=='.csv':
+            return True
+        else:return False
+        
+        
+        
     def load_spec_hndl():
         file_obj=tk.filedialog.askopenfile()
-        spec_df=pd.read_csv(file_obj)
-        file_obj.close()
-        load_energies=spec_df['energies'].values
-        load_fluxes=spec_df['fluxes'].values
-        load_uncerts=spec_df['errors'].values
-        date=spec_df['date'].values[0]
-        inst=spec_df['inst'].values[0]
-        spec_type=spec_df['spec_type'].values[0]
-        window_inst.destroy()#closes current window
-    
-        inspex(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
+        if not spec_file_validate(file_obj):#if correctly formatted 
+            tk.messagebox.showerror("Invalid Input",'Loaded spectrum must be .txt in correct format, saved via the fitting GUI')
+        else:        
+            spec_df=pd.read_csv(file_obj)
+            file_obj.close()
+            load_energies=spec_df['energies'].values
+            load_fluxes=spec_df['fluxes'].values
+            load_uncerts=spec_df['errors'].values
+            date=spec_df['date'].values[0]
+            inst=spec_df['inst'].values[0]
+            spec_type=spec_df['spec_type'].values[0]
+            window_inst.destroy()#closes current window
+        
+            inspex(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
 
     
 
@@ -4825,8 +4866,8 @@ def instrument_choice():#function for the instrument choice window
     #create spectrum load button
     load_spec_button=tk.Button(
     master=window_inst,
-    text="Load Previously created spectrum",
-    width=25,
+    text="Load Previously created INSPEX (.txt) spectrum",
+    width=35,
     height=5,
     bg="white",
     fg="black",
@@ -4855,7 +4896,7 @@ def instrument_choice():#function for the instrument choice window
             selected_func=variable.get()
             if selected_func=='SolO EPD STEP':
                 inst="SolO-STEP"
-            if selected_func=='STEREO STE':
+            if selected_func=='[IDL REQUIRED] STEREO STE':
                 inst="STEREO STE"
             if selected_func=='SolO SWA EAS, alligned to EPD STEP':
                 inst="SolO-EAS"
@@ -4866,7 +4907,7 @@ def instrument_choice():#function for the instrument choice window
             res_sel=res_var.get()
             if res_sel=="No Resampling":
                 if inst=="SolO-EAS+STEP":
-                    tk.messagebox.showerror("Invalid Input",'Combined instruments must have some resapling to align timings')
+                    tk.messagebox.showerror("Invalid Input",'Combined instruments must have some resampling to align timings')
                 else:resample_dur=None#no resampling
             else:
                 resample_dur=res_sel.split()[0]+"min"
@@ -4879,6 +4920,7 @@ def instrument_choice():#function for the instrument choice window
             spec_type_sel=var_spec_type.get()
             
             if spec_type_sel=="fluence" or spec_type_sel=="peak flux":
+                
                 time_rng_select(inst,start_time,end_time,spec_type_sel,resample_dur)#runs time range selection function
             
             elif spec_type_sel=="flux at set time(s)":

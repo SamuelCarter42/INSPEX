@@ -203,7 +203,8 @@ def load_late_step_data(start_time, end_time):
     energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, in KeV
     for i in energy_texts:
-        string=i[0]
+        string=str(i)
+        #breakpoint()
         low=float(string.split(' - ')[0])*1000
         high=float(string.split(' - ')[1][:-4])*1000
         diff=(high-low)/2

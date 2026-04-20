@@ -70,7 +70,7 @@ def load_early_step_data(start_time, end_time):
     
     #import the data
     df_step, energies_step = epd_load(sensor='step', level='l2', startdate=startdate, enddate=enddate, path=path, autodownload=autodownload)
-    
+
     data_step=[df_step, energies_step]#save data we need
     epd_xyz_sectors=energies_step['XYZ_Sectors']
     
@@ -82,7 +82,10 @@ def load_early_step_data(start_time, end_time):
     energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, already in KeV
     for i in energy_texts:
-        string=i[0]
+        if str(type(i))=="<class 'numpy.str_'>":
+            string=str(i)
+        else: 
+            string=str(i[0])
         low=float(string.split(' - ')[0])
         high=float(string.split(' - ')[1][:-4])
         diff=(high-low)/2
@@ -203,8 +206,10 @@ def load_late_step_data(start_time, end_time):
     energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, in KeV
     for i in energy_texts:
-        string=str(i)
-        #breakpoint()
+        if str(type(i))=="<class 'numpy.str_'>":
+            string=str(i)
+        else: 
+            string=str(i[0])
         low=float(string.split(' - ')[0])*1000
         high=float(string.split(' - ')[1][:-4])*1000
         diff=(high-low)/2

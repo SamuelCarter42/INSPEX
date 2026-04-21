@@ -6,7 +6,7 @@ This software was written using Anaconda, and I reccomend that distribution is u
 + lmfit
 + solo_epd_loader (Gieseler et al 2025)
 + pickle
-+ numdiftools
++ numdifftools
 + spiceypy
 + reproject
 + sunpy_soar
@@ -32,3 +32,6 @@ Once the spectrum is generated, the fitting GUI window is created. In addition t
 
 Via Script<br />
 To call INSPEX as a function to fit externally generated spectral data, it is simply called using the inspex.inspex function which takes the energies, spectral fluxes and flux uncertainties and opens the same fitting GUI as described in the Fitting GUI section.
+
+References<br />
+Gieseler, J., & Palmroos, C. (2025). solo-epd-loader (Version 0.4.4) [Computer software]. https://doi.org/10.5281/zenodo.15130823

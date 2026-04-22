@@ -70,7 +70,7 @@ def load_early_step_data(start_time, end_time):
     
     #import the data
     df_step, energies_step = epd_load(sensor='step', level='l2', startdate=startdate, enddate=enddate, path=path, autodownload=autodownload)
-    
+
     data_step=[df_step, energies_step]#save data we need
     epd_xyz_sectors=energies_step['XYZ_Sectors']
     
@@ -82,7 +82,10 @@ def load_early_step_data(start_time, end_time):
     energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, already in KeV
     for i in energy_texts:
-        string=i[0]
+        if str(type(i))=="<class 'numpy.str_'>":
+            string=str(i)
+        else: 
+            string=str(i[0])
         low=float(string.split(' - ')[0])
         high=float(string.split(' - ')[1][:-4])
         diff=(high-low)/2
@@ -203,7 +206,10 @@ def load_late_step_data(start_time, end_time):
     energy_lims=list()
     #convert the energy bin labels, which are as text, to floats in the middle of the bin, in KeV
     for i in energy_texts:
-        string=i[0]
+        if str(type(i))=="<class 'numpy.str_'>":
+            string=str(i)
+        else: 
+            string=str(i[0])
         low=float(string.split(' - ')[0])*1000
         high=float(string.split(' - ')[1][:-4])*1000
         diff=(high-low)/2
@@ -1225,8 +1231,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_fit.set_xscale("log")
     
     #set plot limits so that it is focussed on the data, to avoid scaling issues from fitted curve
-    ax_fit.set_ylim(min(y_data)/2,max(y_data)*2) 
-    ax_fit.set_xlim(min(x_model)-2,max(x_model)+20)
+    ax_fit.set_ylim(np.nanmin(y_data)/2,np.nanmax(y_data)*2) 
+    ax_fit.set_xlim(np.nanmin(x_model)-2,np.nanmax(x_model)+20)
     
     #add legend to plot
     ax_fit.legend(title=f"Reduced Chi sq = {round(redchi,1)}")
@@ -1647,8 +1653,8 @@ def param_preview(x_data,y_data,parvals,header):
     ax_fit.set_xscale("log")
     
     #set plot limits so that it is focussed on the data, to avoid scaling issues from fitted curve
-    ax_fit.set_ylim(min(y_data)/2,max(y_data)*2) 
-    ax_fit.set_xlim(min(x_model),max(x_model))
+    ax_fit.set_ylim(np.nanmin(y_data)/2,np.nanmax(y_data)*2) 
+    ax_fit.set_xlim(np.nanmin(x_model),np.nanmax(x_model))
     
     ax_fit.grid()
     canvas_fit = FigureCanvasTkAgg(fig_fit, master=preview_window) 
@@ -4234,8 +4240,9 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
     ax_fit.set_yscale("log")
     ax_fit.set_xscale("log")
     #set plot limits so that it is focussed on the data, to avoid scaling issues from fitted curve
-    ax_fit.set_ylim(min(y_data)/2,max(y_data)*2) 
-    ax_fit.set_xlim(min(x_data),max(x_data))
+    #including a nan filter max/min so that fill values do not break the code
+    ax_fit.set_ylim(np.nanmin(y_data)/2,np.nanmax(y_data)*2) 
+    ax_fit.set_xlim(np.nanmin(x_data),np.nanmax(x_data))
     
     #add legend to plot
     ax_fit.set_title(f"Spectrum to fit {date}")

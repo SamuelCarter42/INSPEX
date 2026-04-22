@@ -6,7 +6,7 @@ This software was written using Anaconda, and I reccomend that distribution is u
 + lmfit
 + solo_epd_loader (Gieseler et al 2025)
 + pickle
-+ numdiftools
++ numdifftools
 + spiceypy
 + reproject
 + sunpy_soar
@@ -21,7 +21,10 @@ Intended as an in-situ equivalent to OSPEX for HXRs, this software provides a us
 INSPEX can be used in two ways: by calling the script after the user has generated their own spectrum, and by using the GUI to complete the analysis from the start. 
 
 Data Loading<br />
-PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.
+PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.<br />
+Before attempting to load data, please check that it is available from the relevant archive.
+For Solar Orbiter in-situ instruments, the data inventory is available here: **https://sites.google.com/view/solo-wg/information/data-in-situ-instruments**
+<br />
 To begin the GUI method, call the function instrument_choice() at the console after running the INSPEX script. This will open a GUI window with options for loading data. Here, the user has the option to load data using INSPEX's built in loading tools, which currently includes SolO STEP and EAS, and STEREO STE-D. Before proceeding to the next stage, the user must also select a method of spectrum generation from instantaneous, peak flux, or fluence. This will change the following window's functions. There is also an option to load a spectrum generated during a previous run of INSPEX, skipping the generation stage and going straight to the fitting stage. This only loads .txt spectral files from INSPEX, and cannot handle other file types or raw time series data. PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.<br />
 
 Spectral Generation<br />
@@ -32,3 +35,6 @@ Once the spectrum is generated, the fitting GUI window is created. In addition t
 
 Via Script<br />
 To call INSPEX as a function to fit externally generated spectral data, it is simply called using the inspex.inspex function which takes the energies, spectral fluxes and flux uncertainties and opens the same fitting GUI as described in the Fitting GUI section.
+
+References<br />
+Gieseler, J., & Palmroos, C. (2025). solo-epd-loader (Version 0.4.4) [Computer software]. https://doi.org/10.5281/zenodo.15130823

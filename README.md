@@ -13,7 +13,7 @@ This software was written using Anaconda, and I reccomend that distribution is u
 + spacepy
 + emcee
 
-For loading STEREO STE, IDL is required. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
+For loading STEREO STE, an installation of IDL is required as INSPEX calls IDL functions internally. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
 
 Intended as an in-situ equivalent to OSPEX for HXRs, this software provides a user-friendly pipeline to download, analyse and fit in-situ electron spectra. The guiding methodology is laid out in Carter et al 2025 (in prep).
 
@@ -24,6 +24,8 @@ Data Loading<br />
 PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.<br />
 Before attempting to load data, please check that it is available from the relevant archive.
 For Solar Orbiter in-situ instruments, the data inventory is available here: **https://sites.google.com/view/solo-wg/information/data-in-situ-instruments**
+<br />
+For loading STEREO STE, an installation of IDL is required as INSPEX calls IDL functions internally. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
 <br />
 To begin the GUI method, call the function instrument_choice() at the console after running the INSPEX script. This will open a GUI window with options for loading data. Here, the user has the option to load data using INSPEX's built in loading tools, which currently includes SolO STEP and EAS, and STEREO STE-D. Before proceeding to the next stage, the user must also select a method of spectrum generation from instantaneous, peak flux, or fluence. This will change the following window's functions. There is also an option to load a spectrum generated during a previous run of INSPEX, skipping the generation stage and going straight to the fitting stage. This only loads .txt spectral files from INSPEX, and cannot handle other file types or raw time series data. PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.<br />
 

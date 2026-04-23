@@ -4876,7 +4876,7 @@ def instrument_choice():#function for the instrument choice window
     OPTIONS = [
         "SolO EPD STEP",
         "[IDL REQUIRED] STEREO STE",
-        "SolO SWA EAS, alligned to EPD STEP",
+        "SolO SWA EAS, FOV alligned to EPD STEP",
         "Combined SolO SWA EAS and EPD STEP",
         "Cross calibrated SolO SWA EAS and EPD STEP"
         ]     

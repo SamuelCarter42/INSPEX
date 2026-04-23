@@ -4759,6 +4759,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         #to allow spectrum alignment for eas and solo, need to check for instrument
         #and then generate the two halves and align into one
+
         
         if inst=="SolO-EAS+STEP+FAF":
             if selected_func=='fluence':

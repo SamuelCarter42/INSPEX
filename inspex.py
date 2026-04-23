@@ -5172,12 +5172,17 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
     x_data_sliced=list()
     y_data_sliced=list()
     uncert_sliced=list()
+    #breakpoint()
     for pos,time in enumerate(time_series_time):
-      if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
-          x_data_sliced.append(time)
-          y_data_sliced.append(time_series_data[pos][:])
-          uncert_sliced.append(time_series_uncert[pos][:])
-    
+        #account for potential differences in time format
+        if 'T' in str(time)[:-3]:
+            time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
+        else:time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%d %H:%M:%S.%f")
+        if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
+            x_data_sliced.append(time)
+            y_data_sliced.append(time_series_data[pos][:])
+            uncert_sliced.append(time_series_uncert[pos][:])
+      
     time_series_time_raw=time_series_time
     time_series_data_raw=time_series_data
     time_series_uncert_raw= time_series_uncert

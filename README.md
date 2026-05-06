@@ -1,34 +1,82 @@
 # INSPEX
-A GUI for In-Situ electron energy spectral analysis
-Python Package Dependencies:
-This software was written using Anaconda, and I reccomend that distribution is used to run the software. In addition to the packages included in that ditribution, the following packages are also required:
 
-+ lmfit
-+ solo_epd_loader (Gieseler et al 2025)
-+ pickle
-+ numdiftools
-+ spiceypy
-+ reproject
-+ sunpy_soar
-+ spacepy
-+ emcee
+**In-Situ Electron Energy Spectral Analysis**
 
-For loading STEREO STE, IDL is required. However, INSPEX runs without IDL for other instruments and for data loaded by script rather than GUI.
+INSPEX is a user-friendly Python tool for downloading, analysing, and fitting in-situ electron energy spectra. It is intended as an in-situ equivalent to OSPEX for hard X-ray spectroscopy. The underlying methodology is described in Carter et al. (2025, in prep).
 
-Intended as an in-situ equivalent to OSPEX for HXRs, this software provides a user-friendly pipeline to download, analyse and fit in-situ electron spectra. The guiding methodology is laid out in Carter et al 2025 (in prep).
+> **Note:** Loading STEREO STE data requires an installation of IDL, as INSPEX calls IDL functions internally. INSPEX functions normally without IDL for all other instruments and for data loaded via script.
 
+---
 
-INSPEX can be used in two ways: by calling the script after the user has generated their own spectrum, and by using the GUI to complete the analysis from the start. 
+## Requirements
 
-Data Loading<br />
-PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.
-To begin the GUI method, call the function instrument_choice() at the console after running the INSPEX script. This will open a GUI window with options for loading data. Here, the user has the option to load data using INSPEX's built in loading tools, which currently includes SolO STEP and EAS, and STEREO STE-D. Before proceeding to the next stage, the user must also select a method of spectrum generation from instantaneous, peak flux, or fluence. This will change the following window's functions. There is also an option to load a spectrum generated during a previous run of INSPEX, skipping the generation stage and going straight to the fitting stage. This only loads .txt spectral files from INSPEX, and cannot handle other file types or raw time series data. PLEASE NOTE: INSPEX does not remove any negative flux values from data during loading, as these can be statistically meaningful.<br />
+INSPEX is developed using [Anaconda](https://www.anaconda.com/), and that distribution is recommended. The following additional packages are required:
 
-Spectral Generation<br />
-Once the time series data and spectral type are selected, we generate the spectrum. The user can use sliders or entry fields to select the background range, and integration time or instantaneous points depending on the method selected. For the instantaneous method, the user can select a number of different points and fit each in turn. These can be manually selected or generated at a regular time interval. When loading the joint EAS/STEP product, the spectra are cross-calibrated by taking an average of each instrument's flux/fluence in their energy overlap range, and multiplying the EAS data by the difference factor such that the average of that range is the same. We call this the flux alignment factor, or FAF.
+| Package | Notes |
+|---|---|
+| `lmfit` | |
+| `solo_epd_loader` | Gieseler & Palmroos (2025) |
+| `pickle` | |
+| `numdifftools` | |
+| `spiceypy` | |
+| `reproject` | |
+| `sunpy_soar` | |
+| `spacepy` | |
+| `emcee` | |
 
-Fitting GUI<br />
-Once the spectrum is generated, the fitting GUI window is created. In addition to the main window, a secondary window opens to show the user the spectrum. To begin defining the function to be fitted the user may select function components from the drop-down menu, or load a previously defined function from a file. The user can limit the fit to certain energy ranges using the entry fields beneath the function parameters. Each parameter takes an initial value, and an upper and lower bound. Fitting works best when the initial guess is good and the parameters are well constrained. Parameters can also be fixed by unchecking the vary box next to each. To get an idea of the initial guess, the preview parameters button generates a plot of the function with the currently defined initial guess values. The spectrum can also be saved at this stage to save time during later fitting attempts. The perform fit button runs the minimiser, and the results are displayed with the residuals in a separate window. Fitted parameter uncertainties are displayed at the console, though will be available in the GUI in later versions of this software. Once fitting is complete, the user can adjust parameters and try again, or choose to save their fitted parameters to a txt file, from which they can be loaded later. This txt file also contains the reduced chi squared and BIC values.
+---
 
-Via Script<br />
-To call INSPEX as a function to fit externally generated spectral data, it is simply called using the inspex.inspex function which takes the energies, spectral fluxes and flux uncertainties and opens the same fitting GUI as described in the Fitting GUI section.
+## Usage
+
+INSPEX can be used in two ways: through its interactive GUI (recommended for new users), or by calling it directly from a script with an externally generated spectrum.
+
+### 1. GUI Workflow
+
+#### Step 1 — Instrument & Data Selection
+
+Call `instrument_choice()` at the console after running the INSPEX script. This opens a window where you can:
+
+- Load data using INSPEX's built-in loaders for **SolO STEP**, **SolO EAS**, and **STEREO STE-D**
+- Select a spectrum generation method: **instantaneous**, **peak flux**, or **fluence**
+- Load a previously saved INSPEX spectrum (`.txt` format) to skip straight to fitting
+
+> **Note:** Loading STEREO STE data requires an installation of IDL, as INSPEX calls IDL functions internally. INSPEX functions normally without IDL for all other instruments and for data loaded via script.
+
+> **Note:** INSPEX does not remove negative flux values during loading, as these can be statistically meaningful. Before loading, verify data availability at the relevant archive. For Solar Orbiter in-situ instruments, check the [SolO data inventory](https://sites.google.com/view/solo-wg/information/data-in-situ-instruments).
+
+#### Step 2 — Spectral Generation
+
+Use sliders or entry fields to define the background range and integration time (or select instantaneous points). For the instantaneous method, multiple time points can be selected manually or at regular intervals, with each fitted in turn.
+
+When using the joint cross-calibrated EAS/STEP product, spectra are cross-calibrated by computing a **Flux Alignment Factor (FAF)**: the ratio between the two instruments' average flux in their overlapping energy range, which is then applied to the EAS data.
+
+#### Step 3 — Fitting
+
+The fitting GUI opens alongside a live spectrum preview. You can:
+
+- Build a model by selecting function components from a drop-down menu, or load a previously saved model
+- Set energy range limits, initial parameter values, and upper/lower bounds
+- Fix individual parameters by unchecking their *vary* box
+- Preview the current initial guess before fitting
+- Save the spectrum to avoid regenerating it in future sessions
+- Run the minimiser and inspect the results and residuals in a separate window
+
+Fitted parameter uncertainties are currently printed to the console and will be shown in the GUI in a future version. Fitted parameters can be saved to a `.txt` file, which also records the reduced chi-squared and BIC values for later reference.
+
+### 2. Script Usage
+
+To fit an externally generated spectrum, call:
+
+```python
+inspex.inspex(energies, fluxes, flux_uncertainties)
+```
+
+This opens the same fitting GUI described above.
+
+---
+
+## References
+
+Gieseler, J., & Palmroos, C. (2025). *solo-epd-loader* (Version 0.4.4) [Computer software]. https://doi.org/10.5281/zenodo.15130823
+
+Carter et al. (2025, in prep).

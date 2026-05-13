@@ -51,24 +51,10 @@ global bic
 bic=0
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #%%main program handling
         
         
-def inspex_fn(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the curve fitting window
+def fitting_gui(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the curve fitting window
     
     #%initialise values for the fit params: initial values, vary, max value and min value
     global init
@@ -157,28 +143,3 @@ def inspex_fn(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for 
     
     inspex.build_fit_window(x_data,y_data,uncert,date,inst,spec_type)
     fit_window.mainloop()
-    
-
-
-
-
-
-
-    
-    
-
-
-    
-
-
-
-#
-
-#%% run the code to test it
-#instrument_choice()
-
-    
-
-
-
-

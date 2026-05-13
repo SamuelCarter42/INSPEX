@@ -541,13 +541,13 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
             for count,i in enumerate(spectra):#fit all the spectra
                 spec=i[0]
                 spec_uncert=i[1]
-                inspex_fn(time_series_energies, spec, spec_uncert, intervals[count], inst, spec_type)
+                inspex.fitting_gui(time_series_energies, spec, spec_uncert, intervals[count], inst, spec_type)
                 fitted_params[count,0]=parvals_new
                 fitted_params[count,1]=param_uncert_calced
                 
 
         else: #auto loop intervals after first one
-            inspex_fn(time_series_energies, spectra[0][0], spectra[0][1], intervals[0], inst, spec_type)
+            inspex.fitting_gui(time_series_energies, spectra[0][0], spectra[0][1], intervals[0], inst, spec_type)
             fitted_params[0,0]=parvals
             fitted_params[0,1]=param_uncert_calced
             output=parvals
@@ -555,7 +555,7 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
                 spec=i[0]
                 spec_uncert=i[1]
                 global x_data_E_sliced
-                parvals,param_uncert_calced,x_data_E_sliced=fitting(header,output,vary,minval,maxval,time_series_energies,spec,spec_uncert,fitmin,fitmax)
+                parvals,param_uncert_calced,x_data_E_sliced=inspex.fitting(header,output,vary,minval,maxval,time_series_energies,spec,spec_uncert,fitmin,fitmax)
                 #fit_window.quit()
                 #preview_window.quit()
                 fitted_params[count+1,0]=parvals

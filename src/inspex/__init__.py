@@ -8,3 +8,8 @@ from .resamplers import *
 from .spectrum_gen import *
 from .interval_spectrum_gen import *
 from .interval_select import *
+from .fitting_and_resids import *
+from .param_save_load import *
+from .build_fit_window import *
+from .par_preview import *
+from .fitting_gui import *

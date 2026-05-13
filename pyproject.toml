@@ -7,4 +7,6 @@ version="0.1"
 name="inspex"
 
 [project.scripts]
-inspex="inspex:instrument_choice"
+inspex="inspex:fitting_gui"
+instrument_choice="inspex:instrument_choice"
+time_rng_select="inspex:time_rng_select"

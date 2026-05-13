@@ -112,7 +112,7 @@ def instrument_choice():#function for the instrument choice window
             spec_type=spec_df['spec_type'].values[0]
             window_inst.destroy()#closes current window
         
-            inspex_fn(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
+            inspex.fitting_gui(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
 
     
 

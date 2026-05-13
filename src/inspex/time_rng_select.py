@@ -381,7 +381,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         date= spec_mintime.strftime("%d-%m-%Y")        
         TS_window.destroy()
         plt.close(fig_TS)
-        inspex_fn(time_series_energies, spec, spec_uncert, date, inst, spec_type)
+        inspex.fitting_gui(time_series_energies, spec, spec_uncert, date, inst, spec_type)
     
 
     

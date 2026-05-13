@@ -1,0 +1,10 @@
+[build-system]
+requires=["setuptools >= 77.0.3"]
+build-backend="setuptools.build_meta"
+
+[project]
+version="0.1"
+name="inspex"
+
+[project.scripts]
+inspex="inspex:instrument_choice"

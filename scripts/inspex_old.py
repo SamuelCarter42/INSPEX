@@ -2,6 +2,8 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
+import inspex
+#breakpoint()
 sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
 
 import tkinter as tk #this module contains most of the functions to run the gui
@@ -26,7 +28,6 @@ import numdifftools
 import random#needed for random numbers
 import pickle #saves vars
 import threading  #required to allow gui updates during code
-from eas_data_load_v27 import EAS_data_load#this is the custom function for loading EAS data
 
 plt.rcParams['figure.dpi'] = 200 #set the dpi for the plots. this can be tuned to improve figure quality
 
@@ -50,354 +51,8 @@ global bic
 bic=0
 
 
-#%% early step data load function
 
-def load_early_step_data(start_time, end_time):
-    #convert astropy time formats from hek to datetime formats for epd_load
-    stringstart=str(start_time)
-    stringend=str(end_time)
-    
-    # define start and end date of data to load (year, month, day):
-    startdate = dt.datetime.strptime(stringstart,"%Y/%m/%d %H:%M:%S")
-    enddate =  dt.datetime.strptime(stringend,"%Y/%m/%d %H:%M:%S")
 
-    # load step data
-    # sets your current wd path as where you want to save the data files:
-    path = f"{os.getcwd()}/data/"
-
-    # whether missing data files should automatically downloaded from SOAR:
-    autodownload = True
-    
-    #import the data
-    df_step, energies_step = epd_load(sensor='step', level='l2', startdate=startdate, enddate=enddate, path=path, autodownload=autodownload)
-
-    data_step=[df_step, energies_step]#save data we need
-    epd_xyz_sectors=energies_step['XYZ_Sectors']
-    
-    ##turning bin text to numerical values
-    energy_texts=list(energies_step["Electron_Avg_Bins_Text"])
-
-    energy_lims=list()
-    energy_mids_step=list()
-    energy_lims=list()
-    #convert the energy bin labels, which are as text, to floats in the middle of the bin, already in KeV
-    for i in energy_texts:
-        if str(type(i))=="<class 'numpy.str_'>":
-            string=str(i)
-        else: 
-            string=str(i[0])
-        low=float(string.split(' - ')[0])
-        high=float(string.split(' - ')[1][:-4])
-        diff=(high-low)/2
-        mid=low+(diff)
-
-        #values times 1000 for MeV to keV
-        energy_lims.append((low,high))
-        energy_mids_step.append(mid)
-       
-    #correction values for the electron rates (see !!!!!!!!!! for why these corrections are neccesary)
-    early_correction_table=[0.6,0.61,0.63,0.68,0.76,0.81,1.06,1.32,1.35,1.35,1.35,1.34,1.34,1.35,1.38,1.36,1.32,1.32,1.28,1.26,1.15,1.15,1.15,1.15,1.16,1.16,1.16,1.17,1.17,1.16,1.18,1.17,1.17,1.16,1.17,1.15,1.16,1.17,1.18,1.17,1.17,1.17,1.18,1.18,1.19,1.18,1.19,1.2]
-         
-
-    integ_chan_names=[f'Integral_Avg_Flux_{channel}'for channel in np.linspace(0, len(energies_step["Bins_Text"])-1, num=len(energies_step["Bins_Text"])).astype(int)]
-    integ_flux_step=data_step[0][integ_chan_names]
-
-    integ_uncert_chan_names=[f'Integral_Avg_Uncertainty_{channel}' for channel in np.linspace(0, len(energies_step["Bins_Text"])-1, num=len(energies_step["Bins_Text"])).astype(int)]
-    integ_uncert_step=data_step[0][integ_uncert_chan_names]
-
-
-    mag_chan_names=[f'Magnet_Avg_Flux_{channel}'for channel in np.linspace(0, len(energies_step["Bins_Text"])-1, num=len(energies_step["Bins_Text"])).astype(int)]
-    mag_flux_step=data_step[0][mag_chan_names]
-
-
-    mag_uncert_chan_names=[f'Magnet_Avg_Uncertainty_{channel}' for channel in np.linspace(0, len(energies_step["Bins_Text"])-1, num=len(energies_step["Bins_Text"])).astype(int)]
-    mag_uncert_step=data_step[0][mag_uncert_chan_names]
-
-
-    step_times_64=data_step[0].index
-
-
-    step_times=step_times_64.to_pydatetime()
-
-
-
-    integ_flux_step=integ_flux_step.to_numpy()
-    mag_flux_step=mag_flux_step.to_numpy()
-
-
-    step_array_raw=integ_flux_step-mag_flux_step
-    #corrections
-    step_array=step_array_raw.copy()
-
-    for channel in np.linspace(0, 47, num=48).astype(int):
-        #correction factor for electrons varies depending on when the data is from        
-        if startdate<dt.datetime.strptime("2021/10/22 00:00:00","%Y/%m/%d %H:%M:%S"):
-            correction_factor=early_correction_table[channel]
-        else:
-            print("Error, data should be loaded from the later data function")
-        step_array[:,channel]=(step_array_raw[:,channel]*correction_factor)/1000#correction from raw unmodified counts including per keV conversion
-        
-
-
-
-    #error propagation
-
-    integ_uncert_step=integ_uncert_step.to_numpy()
-    mag_uncert_step=mag_uncert_step.to_numpy()
-
-
-    integ_uncert_step_sq=integ_uncert_step**2
-    mag_uncert_step_sq=mag_uncert_step**2
-
-    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)
-    
-    #uncert must be corrected too
-    step_uncert_array=step_uncert_array_raw.copy()
-    for channel in np.linspace(0, 47, num=48).astype(int):
-        #correction factor for electrons varies depending on when the data is from        
-        if startdate<dt.datetime.strptime("2021/10/22 00:00:00","%Y/%m/%d %H:%M:%S"):
-            correction_factor=early_correction_table[channel]
-        else:
-            print("Error, data should be loaded from the later data function")
-
-
-        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts 
-
-
-    
-    #slice data down to range requested from full days
-    mask=(step_times>=startdate) & (step_times<enddate )
-    step_times=step_times[mask]
-    step_array=step_array[mask,:]
-    step_uncert_array=step_uncert_array[mask,:]
-    
-    
-    
-    return step_times,energy_mids_step,step_array,step_uncert_array,epd_xyz_sectors,np.array(energy_lims)
-#%% load post-recalibration step data
-def load_late_step_data(start_time, end_time):
-    #convert astropy time formats from hek to datetime formats for epd_load
-    stringstart=str(start_time)
-    stringend=str(end_time)
-    
-    # define start and end date of data to load (year, month, day):
-    startdate = dt.datetime.strptime(stringstart,"%Y/%m/%d %H:%M:%S")
-    enddate =  dt.datetime.strptime(stringend,"%Y/%m/%d %H:%M:%S")
-
-    # load step data
-    # sets your current wd path as where you want to save the data files:
-    path = f"{os.getcwd()}/data/"
-
-    # whether missing data files should automatically downloaded from SOAR:
-    autodownload = True
-    
-    #import the data
-    df_step, energies_step = epd_load(sensor='step', level='l2', 
-                                      startdate=startdate, enddate=enddate,
-                                      path=path, autodownload=autodownload)
-    
-    data_step=[df_step, energies_step]#save data we need
-    
-    ##turning bin text to numerical values
-    energy_texts=list(energies_step["Electron_Bins_Text"])
-    epd_xyz_sectors=energies_step['XYZ_Pixels']
-
-    energy_mids_step=list()
-    energy_lims=list()
-    #convert the energy bin labels, which are as text, to floats in the middle of the bin, in KeV
-    for i in energy_texts:
-        if str(type(i))=="<class 'numpy.str_'>":
-            string=str(i)
-        else: 
-            string=str(i[0])
-        low=float(string.split(' - ')[0])*1000
-        high=float(string.split(' - ')[1][:-4])*1000
-        diff=(high-low)/2
-        mid=low+(diff)
-        #values times 1000 for MeV to keV
-       
-        energy_mids_step.append(mid)
-        energy_lims.append((low,high))
-    #read correction table from the energy file
-    correction_table=energies_step['Electron_Flux_Mult']['Electron_Avg_Flux_Mult']
-
-    integ_chan_names=[f'Integral_Avg_Flux_{channel}'for channel in np.linspace(0, len(energies_step["Electron_Bins_Text"])-1, num=len(energies_step["Electron_Bins_Text"])).astype(int)]
-    integ_flux_step=data_step[0][integ_chan_names]
-
-    integ_uncert_chan_names=[f'Integral_Avg_Uncertainty_{channel}' for channel in np.linspace(0, len(energies_step["Electron_Bins_Text"])-1, num=len(energies_step["Electron_Bins_Text"])).astype(int)]
-    integ_uncert_step=data_step[0][integ_uncert_chan_names]
-
-
-    mag_chan_names=[f'Magnet_Avg_Flux_{channel}'for channel in np.linspace(0, len(energies_step["Electron_Bins_Text"])-1, num=len(energies_step["Electron_Bins_Text"])).astype(int)]
-    mag_flux_step=data_step[0][mag_chan_names]
-
-
-    mag_uncert_chan_names=[f'Magnet_Avg_Uncertainty_{channel}' for channel in np.linspace(0, len(energies_step["Electron_Bins_Text"])-1, num=len(energies_step["Electron_Bins_Text"])).astype(int)]
-    mag_uncert_step=data_step[0][mag_uncert_chan_names]
-
-
-    step_times_64=data_step[0].index
-
-
-    step_times=step_times_64.to_pydatetime()
-
-
-
-    integ_flux_step=integ_flux_step.to_numpy()
-    mag_flux_step=mag_flux_step.to_numpy()
-
-
-    step_array_raw=integ_flux_step-mag_flux_step
-
-    #corrections
-    step_array=step_array_raw.copy()
-
-    for channel in np.linspace(0, 31, num=32).astype(int):
-        correction_factor=correction_table[channel]
-        step_array[:,channel]=(step_array_raw[:,channel]*correction_factor)/1000#correction from raw unmodified counts including per keV conversion
-    
-    
-    #error propagation
-
-    integ_uncert_step=integ_uncert_step.to_numpy()
-    mag_uncert_step=mag_uncert_step.to_numpy()
-
-
-    integ_uncert_step_sq=integ_uncert_step**2
-    mag_uncert_step_sq=mag_uncert_step**2
-
-    step_uncert_array_raw=np.sqrt(integ_uncert_step_sq+mag_uncert_step_sq)
-    
-    #uncert must be corrected too
-    step_uncert_array=step_uncert_array_raw.copy()
-    for channel in np.linspace(0, 31, num=32).astype(int):
-        #correction factor for electrons varies depending on when the data is from        
-        correction_factor=correction_table[channel]
-        step_uncert_array[:,channel]=(step_uncert_array_raw[:,channel]*correction_factor)/1000#conversion to per keV#correction from raw unmodified counts
-
-    #slice data down to range requested from full days
-    mask=(step_times>=startdate) & (step_times<enddate )
-    step_times=step_times[mask]
-    step_array=step_array[mask,:]
-    step_uncert_array=step_uncert_array[mask,:]
-    
-    
-    return step_times,energy_mids_step,step_array,step_uncert_array,epd_xyz_sectors,np.array(energy_lims)
-#%%stereo data load function
-
-
-def stereo_data_load(start_time, end_time):
-    
-    date= dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S").strftime("%d-%m-%Y")
-    
-    this_folder=os.path.realpath(os.getcwd())
-    this_folder=str(this_folder).replace('\\', '/')
-    #run the function that calls the IDL load and calibration function
-    stereo_idl_caller.stereo_data_load_calib(start_time,end_time,date,this_folder)
-    
-    
-    
-    
-    
-    
-    #load in data from the IDl save files
-    #read D0 data
-    path=os.path.join(fr'{this_folder}/data/Stereo/Processed_data/STA_STE_D0_{date}_range.sav')
-    STE_D0_sav=scipy.io.readsav(path)
-    
-    STE_D0=STE_D0_sav['structure0']#pulls array from .sav structure
-    STE_D0_times_unix=STE_D0[0][0]
-    
-    #read D1 data
-    path=os.path.join(fr'{this_folder}/data/Stereo/Processed_data/STA_STE_D1_{date}_range.sav')
-    STE_D1_sav=scipy.io.readsav(path)
-    
-    STE_D1=STE_D1_sav['structure1']#pulls array from .sav structure
-    STE_D1_times_unix=STE_D1[0][0]
-    
-    
-    #read D2 data
-    path=os.path.join(fr'{this_folder}/data/Stereo/Processed_data/STA_STE_D2_{date}_range.sav')
-    STE_D2_sav=scipy.io.readsav(path)
-    
-    STE_D2=STE_D2_sav['structure2']#pulls array from .sav structure
-    STE_D2_times_unix=STE_D2[0][0]
-    
-    #read D3 data
-    path=os.path.join(fr'{this_folder}/data/Stereo/Processed_data/STA_STE_D3_{date}_range.sav')
-    STE_D3_sav=scipy.io.readsav(path)
-    
-    STE_D3=STE_D3_sav['structure3']#pulls array from .sav structure
-    STE_D3_times_unix=STE_D3[0][0]
-    
-    
-    #for D0
-    #converts times to gregorian
-    STE_D0_times=list()
-    for i in STE_D0_times_unix: STE_D0_times.append(dt.datetime.fromtimestamp(i))
-
-    #retreive energies-all the same at all times, so will just take first value
-    STE_D0_energies=STE_D0[0][2][:,0]
-  
-    STE_D0_flux=STE_D0[0][1]
-
-    STE_D0_flux=STE_D0_flux.byteswap().view(STE_D0_flux.dtype.newbyteorder())# force native byteorder so that numpy array works with pandas
-
-    #for D1
-    #converts times to gregorian
-    STE_D1_times=list()
-    for i in STE_D1_times_unix: STE_D1_times.append(dt.datetime.fromtimestamp(i))
-
-    #retreive energies-all the same at all times, so will just take first value- or will we just pull for the time?
-    STE_D1_energies=STE_D1[0][2][:,0]
-
-    STE_D1_flux=STE_D1[0][1]
-
-    STE_D1_flux=STE_D1_flux.byteswap().view(STE_D1_flux.dtype.newbyteorder())# force native byteorder so that numpy array works with pandas
-
-    #for D2
-    #converts times to gregorian
-    STE_D2_times=list()
-    for i in STE_D2_times_unix: STE_D2_times.append(dt.datetime.fromtimestamp(i))
-
-    #retreive energies-all the same at all times, so will just take first value- or will we just pull for the time?
-    STE_D2_energies=STE_D2[0][2][:,0]
-
-    STE_D2_flux=STE_D2[0][1]
-
-    STE_D2_flux=STE_D2_flux.byteswap().view(STE_D2_flux.dtype.newbyteorder())# force native byteorder so that numpy array works with pandas
-
-
-    #for D3
-    #converts times to gregorian
-    STE_D3_times=list()
-    for i in STE_D3_times_unix: STE_D3_times.append(dt.datetime.fromtimestamp(i))
-
-    #retreive energies-all the same at all times, so will just take first value- or will we just pull for the time?
-    STE_D3_energies=STE_D3[0][2][:,0]
-
-    STE_D3_flux=STE_D3[0][1]
-
-    STE_D3_flux=STE_D3_flux.byteswap().view(STE_D3_flux.dtype.newbyteorder())# force native byteorder so that numpy array works with pandas
-
-    #take average of the energy bins for each detector
-    STE_Combo_Energies=np.array(list(STE_D0_energies))+np.array(list(STE_D1_energies))+np.array(list(STE_D2_energies))+np.array(list(STE_D3_energies))
-    STE_Combo_Energies=STE_Combo_Energies/4#average
-    STE_Combo_Energies=STE_Combo_Energies/1000 #convert to keV
-    #sum the count arrays
-    STE_combo_flux=STE_D0_flux+STE_D1_flux+STE_D2_flux+STE_D3_flux
-    STE_combo_flux=(STE_combo_flux.transpose())*1000
-    
-    #propagate the errors
-    STE_D0_Flux_Errors=STE_D0[0][6]*1000#convert per ev to per kev
-    STE_D1_Flux_Errors=STE_D1[0][6]*1000#convert per ev to per kev
-    STE_D2_Flux_Errors=STE_D2[0][6]*1000#convert per ev to per kev
-    STE_D3_Flux_Errors=STE_D3[0][6]*1000#convert per ev to per kev
-    STE_Combo_Errors=np.sqrt((np.array(list(STE_D0_Flux_Errors))**2)+(np.array(list(STE_D1_Flux_Errors))**2)+(np.array(list(STE_D2_Flux_Errors))**2)+(np.array(list(STE_D3_Flux_Errors))**2))
-    STE_Combo_Errors=STE_Combo_Errors.transpose()
-
-    #we will use the D0 times for all
-    return(np.array(STE_D0_times),STE_Combo_Energies,STE_combo_flux,STE_Combo_Errors)
 
 #%%functions for fitting
 k_B=8.617333262*(10**-8) # Boltzmann constant in keV per kelvin
@@ -4174,7 +3829,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 #%%main program handling
         
         
-def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the curve fitting window
+def inspex_fn(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the curve fitting window
     
     #%initialise values for the fit params: initial values, vary, max value and min value
     global init
@@ -4266,134 +3921,15 @@ def inspex(x_data,y_data,uncert,date,inst,spec_type):# mainloop function for the
     
 
 
-#%%average background spectrum calculator
-
-def avg_bg_calc(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime):
-    bg_maska=time_series_time >=bg_mintime#0 is start
-    bg_maskb=time_series_time<=bg_maxtime
-
-    #combine masks into one
-    bg_mask=np.logical_and(bg_maska, bg_maskb)
-
-    #time masking
-    pos_not_bg=[pos for pos,val in enumerate(zip(bg_mask, time_series_time)) if not(val[0])]
-    times_bg=[val[1] for pos,val in enumerate(zip(bg_mask, time_series_time)) if (val[0])]
-           
-    array_bg=np.delete(time_series_data,pos_not_bg,0)
-
-    uncert_array_sliced_bg=np.delete(time_series_uncert,pos_not_bg,0)
 
 
-    bg_spectrum=dict()#mean of every channel over selected background period
-    bg_spectrum_uncert=dict()
-    for channel in np.linspace(0, len(time_series_energies)-1, num=len(time_series_energies)).astype(int):#loop through the time series of each energy channel
-        bg_spectrum[channel]=np.mean(array_bg[:,channel])
-        bg_spectrum_uncert[channel]=np.sqrt(sum([err**2 for err in uncert_array_sliced_bg[:,channel]]))
-    return bg_spectrum, bg_spectrum_uncert
-
-#%% spectrum calculator for peak flux
-def peak_flux_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime):
-    bg_spec, bg_spec_uncert=avg_bg_calc(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime)
-    
-    maska=time_series_time >=spec_mintime# is start
-    maskb=time_series_time<=spec_maxtime
-
-    #combine masks into one
-    mask=np.logical_and(maska, maskb)
-
-    #time masking
-    TS_pos_not=[pos for pos,val in enumerate(zip(mask, time_series_time)) if not(val[0])]
-    TS_times_sliced=[val[1] for pos,val in enumerate(zip(mask, time_series_time)) if (val[0])]
-           
-    TS_array_sliced=np.delete(time_series_data,TS_pos_not,0)
-
-    TS_uncert_array_sliced=np.delete(time_series_uncert,TS_pos_not,0)
-    
-    #background subtraction
-        
-    TS_array_subtracted=TS_array_sliced.copy()
-    TS_uncert_array_subtracted=TS_uncert_array_sliced.copy()
-    for channel in np.linspace(0, len(time_series_energies)-1, num=len(time_series_energies)).astype(int):#loop through the time series of each energy channel
-        this_chan_bg=bg_spec[channel]
-        TS_array_subtracted[:,channel]=TS_array_sliced[:,channel]-this_chan_bg
-        
-        TS_uncert_array_subtracted[:,channel]=np.sqrt(np.array([err**2 for err in TS_uncert_array_sliced[:,channel]])+ bg_spec_uncert[channel]**2)
-        
-    
-    
-    
-    #calculate the peak flux spectra
-    TS_flux=dict()
-    TS_flux_uncert=dict()
-    for pos,channel in enumerate(time_series_energies):
-        if channel>100:continue #need to limit energy range to 100 kev
-        this_chan=list(TS_array_subtracted[:,pos])
-        #breakpoint()
-        this_e=channel
-#        print(this_chan)
-        TS_flux[this_e]=max(this_chan)
-        
-        max_pos=list(this_chan).index(max(this_chan))
-        this_uncert=TS_uncert_array_subtracted[max_pos,pos]
-        
-        TS_flux_uncert[this_e]=this_uncert
-    
-    return list(TS_flux.values()),list(TS_flux_uncert.values())
-
-#%%spectrum calculator for Fluence
 
 
-def fluence_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime):
-    bg_spec, bg_spec_uncert=avg_bg_calc(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime)#background generating function
-    
-    maska=time_series_time >=spec_mintime# is start
-    maskb=time_series_time<=spec_maxtime
-
-    #combine masks into one
-    mask=np.logical_and(maska, maskb)
-
-    #time masking
-    TS_pos_not=[pos for pos,val in enumerate(zip(mask, time_series_time)) if not(val[0])]
-    TS_times_sliced=[val[1] for pos,val in enumerate(zip(mask, time_series_time)) if (val[0])]
-           
-    TS_array_sliced=np.delete(time_series_data,TS_pos_not,0)
-
-    TS_uncert_array_sliced=np.delete(time_series_uncert,TS_pos_not,0)
-    
-    #background subtraction
-        
-    TS_array_subtracted=TS_array_sliced.copy()
-    TS_uncert_array_subtracted=TS_uncert_array_sliced.copy()
-    for channel in np.linspace(0, len(time_series_energies)-1, num=len(time_series_energies)).astype(int):#loop through the time series of each energy channel
-        this_chan_bg=bg_spec[channel]
-        TS_array_subtracted[:,channel]=TS_array_sliced[:,channel]-this_chan_bg
-        
-        TS_uncert_array_subtracted[:,channel]=np.sqrt(np.array([err**2 for err in TS_uncert_array_sliced[:,channel]])+ bg_spec_uncert[channel]**2)
-        
-        
-        
-        
-        
-    #calculate the fluence spectra
-    TS_fluence=dict()
-    TS_fluence_uncert=dict()
-    for pos,channel in enumerate(time_series_energies):
-        if channel>100:continue #need to limit energy range to 100 kev
-        this_chan=TS_array_subtracted[:,pos]
-        this_e=channel
-        TS_fluence[this_e]=sum(this_chan)
-        this_uncert_list=TS_uncert_array_subtracted[:,pos]
-        this_uncert=np.sqrt(sum([i**2 for i in this_uncert_list]))
-        TS_fluence_uncert[this_e]=this_uncert
-        
-        
-        
-    return list(TS_fluence.values()),list(TS_fluence_uncert.values())
     
     
 #%%spectrum generation for a single time
 def interval_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,intervals):
-    bg_spec, bg_spec_uncert=avg_bg_calc(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime)#background generating function
+    bg_spec, bg_spec_uncert=inspex.avg_bg_calc(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime)#background generating function
     #print(time_series_time)
     spectra=list()
     for interval in intervals:
@@ -4411,633 +3947,10 @@ def interval_spec_gen(time_series_time,time_series_energies,time_series_data,tim
     
     
     return spectra
-#%%peak/fluence time range and background selection
-
-#resampling function
-def custom_resampler(arraylike):
-        
-    arraylike2=np.nanmean(arraylike)
-    if np.isnan(arraylike2).any():
-        arraylike2=np.nan#this should prevent the data from being plotted while maintaining consitent length
-
-    return (arraylike2)
-
-def custom_resampler_uncert(arraylike):
-    try:#if the uncert resampling gets broken, this should avoid the issue
-        arraylike2=np.sqrt(sum(arraylike**2))/(len(arraylike))
-    except:arraylike2=0
-        
-    if np.isnan(arraylike2).any():
-        arraylike2=0
-    return (arraylike2)
-def resample_func(time,data,uncert,resample_dur):
-    
-    series_list=list()
-    uncert_series_list=list()
-    #must transpose to make E by t for resampling
-    for e_row in data.transpose():    #resample each energy row of data array
-        data_series=pd.Series(e_row,time).resample(resample_dur).apply(custom_resampler)
-        series_list.append(data_series)
-    
-    for e_row in uncert.transpose():#resample each energy row of uncert array
-        uncert_series=pd.Series(e_row,time).resample(resample_dur).apply(custom_resampler_uncert)
-        uncert_series_list.append(uncert_series)
-    
-    res_data=list()
-    res_uncert=list()
-    
-    for e_row in series_list:    #unpack each row of the data series array
-        this_chan=e_row.values
-        res_data.append(this_chan)
-    
-    for e_row in uncert_series_list:    #unpack each row of the uncert series array
-        this_chan=e_row.values
-        res_uncert.append(this_chan)
-    
-    res_times=np.array(series_list[0].index)#times will be same for every row, just take first
-    #must transpose to make t by E for rest of process
-    return res_times,np.array(res_data).transpose(),np.array(res_uncert).transpose()
-    
-
-
-def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#function for the time range window
-    
-    
-
-#    window_inst.destroy()#closes instrument window window
-
-    #load in data for selected probe. list of times, list of energies in keV, array of data in (times by energies), array of uncerts in (times by energies)
-    if inst=="SolO-STEP":
-        if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
-        else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
-                            
-        if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
-    
-    if inst=="STEREO STE":
-        time_series_time,time_series_energies,time_series_data,time_series_uncert=stereo_data_load(start_time, end_time)
-        if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
-    
-    if inst=="SolO-EAS":
-        low_e_cutoff=0.5
-        date_for_spec=dt.datetime.strftime(dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S").date(),'%Y/%m/%d')
-        epd_xyz_sectors=np.array([[-0.8412,  0.4396,  0.3149],
-        [-0.8743,  0.457 ,  0.1635],
-        [-0.8862,  0.4632, -0.    ],
-        [-0.8743,  0.457 , -0.1635],
-        [-0.8412,  0.4396, -0.315 ],
-        [-0.7775,  0.5444,  0.3149],
-        [-0.8082,  0.5658,  0.1635],
-        [-0.8191,  0.5736,  0.    ],
-        [-0.8082,  0.5659, -0.1634],
-        [-0.7775,  0.5444, -0.3149],
-        [-0.7008,  0.6401,  0.3149],
-        [-0.7284,  0.6653,  0.1634],
-        [-0.7384,  0.6744, -0.    ],
-        [-0.7285,  0.6653, -0.1635],
-        [-0.7008,  0.6401, -0.315 ]])
-        #breakpoint()
-        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
-        if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
-    
-    if inst=="SolO-EAS+STEP":
-        #load eas
-        low_e_cutoff=0.5
-        date_for_spec=dt.datetime.strftime(dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S").date(),'%Y/%m/%d')
-        epd_xyz_sectors=np.array([[-0.8412,  0.4396,  0.3149],
-        [-0.8743,  0.457 ,  0.1635],
-        [-0.8862,  0.4632, -0.    ],
-        [-0.8743,  0.457 , -0.1635],
-        [-0.8412,  0.4396, -0.315 ],
-        [-0.7775,  0.5444,  0.3149],
-        [-0.8082,  0.5658,  0.1635],
-        [-0.8191,  0.5736,  0.    ],
-        [-0.8082,  0.5659, -0.1634],
-        [-0.7775,  0.5444, -0.3149],
-        [-0.7008,  0.6401,  0.3149],
-        [-0.7284,  0.6653,  0.1634],
-        [-0.7384,  0.6744, -0.    ],
-        [-0.7285,  0.6653, -0.1635],
-        [-0.7008,  0.6401, -0.315 ]])
-        
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
-        if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
-        
-        #load step
-        if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
-        else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
-        
-        if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
-        
-        #after resampling, time series should line up. we take eas
-        time_series_time=eas_time_series_time
-        #breakpoint()
-        #combine the data into one array
-        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data), axis=1)
-        time_series_uncert=np.concatenate((eas_time_series_uncert,step_time_series_uncert), axis=1)
-        time_series_energies=np.concatenate((eas_time_series_energies,step_time_series_energies))
-    
-    if inst=="SolO-EAS+STEP+FAF":
-        #load eas
-        low_e_cutoff=0.5
-        date_for_spec=dt.datetime.strftime(dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S").date(),'%Y/%m/%d')
-        epd_xyz_sectors=np.array([[-0.8412,  0.4396,  0.3149],
-        [-0.8743,  0.457 ,  0.1635],
-        [-0.8862,  0.4632, -0.    ],
-        [-0.8743,  0.457 , -0.1635],
-        [-0.8412,  0.4396, -0.315 ],
-        [-0.7775,  0.5444,  0.3149],
-        [-0.8082,  0.5658,  0.1635],
-        [-0.8191,  0.5736,  0.    ],
-        [-0.8082,  0.5659, -0.1634],
-        [-0.7775,  0.5444, -0.3149],
-        [-0.7008,  0.6401,  0.3149],
-        [-0.7284,  0.6653,  0.1634],
-        [-0.7384,  0.6744, -0.    ],
-        [-0.7285,  0.6653, -0.1635],
-        [-0.7008,  0.6401, -0.315 ]])
-        
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
-        if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
-        
-        #load step
-        if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
-        else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
-        
-        if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
-        
-        #after resampling, time series should line up. we take eas
-        time_series_time=eas_time_series_time
-        #breakpoint()
-        #combine the data into one array
-        time_series_data=np.concatenate((eas_time_series_data,step_time_series_data), axis=1)
-        time_series_uncert=np.concatenate((eas_time_series_uncert,step_time_series_uncert), axis=1)
-        time_series_energies=np.concatenate((eas_time_series_energies,step_time_series_energies))
-        #breakpoint()
-        
-    #slice loaded data to range selected by user, as generally loads in full days    
-    #set range to user defined fitting limits
-    x_data_sliced=list()
-    y_data_sliced=list()
-    uncert_sliced=list()
-    for pos,time in enumerate(time_series_time):
-        #breakpoint()
-        #print(time)
-        #account for potential differences in time format
-        if 'T' in str(time)[:-3]:
-            time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%dT%H:%M:%S.%f")
-        else:time=dt.datetime.strptime(str(time)[:-3],"%Y-%m-%d %H:%M:%S.%f")
-        
-        if time>=dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")  and time<=dt.datetime.strptime(end_time,"%Y/%m/%d %H:%M:%S"):
-            x_data_sliced.append(time)
-            y_data_sliced.append(time_series_data[pos][:])
-            uncert_sliced.append(time_series_uncert[pos][:])
-      
-    time_series_time_raw=time_series_time
-    time_series_data_raw=time_series_data
-    time_series_uncert_raw= time_series_uncert
-    
-    
-    
-    
-    time_series_time=np.array(x_data_sliced)
-    time_series_data=np.array(y_data_sliced)
-    time_series_uncert=np.array(uncert_sliced)     
-
-    
-    
-    
-    
-    
-    #display loaded data
-    TS_window=tk.Tk()#create window for the range selection
-    TS_window.title("Select background and spectrum ranges")
-    fig_TS =plt.Figure(figsize=(4,3), dpi=300)    
-    ax_TS= fig_TS.add_subplot(1, 1, 1)
-
-
-
-    
-    #set global variables
-    global tot
-    global sliders
-    global ys
-    global set_funcs
-    #define some lists to put sliders and the set functions into 
-
-    sliders=[]#where the sliders are stored 
-    ys=[]#currently not settled fits
-    set_funcs=[]#for fits that have been set 
-    #print('loaded pack')
-    
-
-    global slider_num#global variable
-    global low_x
-    global upper_x
-    slider_num=4 #number of sliders
-
-    tsres="15min"
-
-    def update(idx): #an update function that gets called everytime the sliders get sild around 
-
-        low_x=ax_TS.get_xlim()[0]
-        upper_x=ax_TS.get_xlim()[1]#get the x axis limits 
-        ax_TS.cla() #clears the plot but leaves the window open 
-        
-        if inst=="SolO-STEP":plotchans=[0, 4, 8, 12, 16, 20, 24, 28,30]
-        else:plotchans=np.linspace(0, len(time_series_energies) - 1, 9, dtype=int)
-        #breakpoint()
-        for channel in plotchans:        
-            label=f'{round(time_series_energies[channel],2)} keV'
-            
-            pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=label,linewidth=0.75,rot=30,fontsize=5)#
-        
-
-
-
-
-        ax_TS.set_xlim(min(time_series_time),max(time_series_time))
-        #ax_TS.set_ylim(bottom=time_series_data_raw.min())
-        time_range_s=max(time_series_time)-min(time_series_time)        
-        
-        bg_mintime=min(time_series_time)+(sliders[0].get()*time_range_s)
-        bg_maxtime=min(time_series_time)+(sliders[1].get()*time_range_s)
-        spec_mintime=min(time_series_time)+(sliders[2].get()*time_range_s)
-        spec_maxtime=min(time_series_time)+(sliders[3].get()*time_range_s)
-        
-        line_top=np.nanmax(time_series_data_raw)
-        width=0.5
-        ax_TS.vlines(bg_mintime, 0, line_top, colors='k',linestyles=[(0,(9,3,4,4))],linewidth=width)
-        ax_TS.vlines(bg_maxtime, 0, line_top, colors='k',linestyles=[(0,(9,3,4,4))],linewidth=width)
-        ax_TS.vlines(spec_mintime, 0, line_top, colors='k',linestyles=[(0,(9,3,4,4))],linewidth=width)
-        ax_TS.vlines(spec_maxtime, 0, line_top, colors='k',linestyles=[(0,(9,3,4,4))],linewidth=width)
-
-
-
-        fig_TS.canvas.draw()
-        fig_TS.canvas.draw_idle()#this draws it on the canvas and end of update 
-
-
-    low_x=ax_TS.get_xlim()[0]
-
-
-    upper_x=ax_TS.get_xlim()[1]#sets the max and min for the location slider
-    slider_res=0.01
-    slider_frame=tk.Frame(master=TS_window)
-    
-    time_range_s=max(time_series_time)-min(time_series_time)
-    half_time=min(time_series_time)+(0.5*time_range_s)
-    
-    #bg min slider
-    sliders.append(tk.Scale(master=slider_frame,from_=0, to=1,resolution=slider_res,command=update,orient=tk.HORIZONTAL,label='BG min'))
-    sliders[0].set((upper_x+low_x)/2)#this sets the initial value 
-    sliders[0].pack(side=tk.TOP)   #defines where it is in the window 
-
-    bg_min_ent=tk.Entry(master=slider_frame,fg="black", bg="white", width=10)
-    bg_min_ent.pack(side=tk.BOTTOM)
-    bg_min_ent.delete(0, tk.END)
-    bg_min_ent.insert(0,half_time)
-    
-    
-    
-    #bgmax slider
-    sliders.append(tk.Scale(master=slider_frame,from_=0, to=1,resolution=slider_res,command=update,orient=tk.HORIZONTAL,label='BG max'))
-    sliders[1].set((upper_x+low_x)/2)#this sets the initial value 
-    sliders[1].pack(side=tk.TOP)   #defines where it is in the window 
-    
-    bg_max_ent=tk.Entry(master=slider_frame,fg="black", bg="white", width=10)
-    bg_max_ent.pack(side=tk.BOTTOM)
-    bg_max_ent.delete(0, tk.END)
-    bg_max_ent.insert(0,half_time)
-    
-    #specmin slider
-    sliders.append(tk.Scale(master=slider_frame,from_=0, to=1,resolution=slider_res,command=update,orient=tk.HORIZONTAL,label='Spec min'))
-    sliders[2].set((upper_x+low_x)/2)#this sets the initial value 
-    sliders[2].pack(side=tk.TOP)   #defines where it is in the window 
-    
-    specmin_ent=tk.Entry(master=slider_frame,fg="black", bg="white", width=10)
-    specmin_ent.pack(side=tk.BOTTOM)
-    specmin_ent.delete(0, tk.END)
-    specmin_ent.insert(0,half_time)
-    
-    #specmax slider
-    sliders.append(tk.Scale(master=slider_frame,from_=0, to=1,resolution=slider_res,command=update,orient=tk.HORIZONTAL,label='Spec max'))
-    sliders[3].set((upper_x+low_x)/2)#this sets the initial value 
-    sliders[3].pack(side=tk.TOP)   #defines where it is in the window 
-
-    specmax_ent=tk.Entry(master=slider_frame,fg="black", bg="white", width=10)
-    specmax_ent.pack(side=tk.BOTTOM)
-    specmax_ent.delete(0, tk.END)
-    specmax_ent.insert(0,half_time)
-
-    slider_frame.pack(side=tk.LEFT)
-    
-
-    
-    
-    def TS_Select_btn_hndl():
-        
-        time_range_s=max(time_series_time)-min(time_series_time)
-        bg_mintime=min(time_series_time)+(sliders[0].get()*time_range_s)
-        bg_maxtime=min(time_series_time)+(sliders[1].get()*time_range_s)
-        spec_mintime=min(time_series_time)+(sliders[2].get()*time_range_s)
-        spec_maxtime=min(time_series_time)+(sliders[3].get()*time_range_s)
-        #print(np.shape(time_series_data))
-        selected_func=spec_type_sel
-        
-        #to allow spectrum alignment for eas and solo, need to check for instrument
-        #and then generate the two halves and align into one
-
-        
-        if inst=="SolO-EAS+STEP+FAF":
-            if selected_func=='fluence':
-                #generate for EAS
-                spec_eas,spec_uncert_eas=fluence_spec_gen(time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
-                #generate for step
-                spec_step,spec_uncert_step=fluence_spec_gen(time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
-                #generate alignment factor
-                fact1=spec_step[4]/spec_eas[-1]
-                fact2=spec_step[0]/spec_eas[-2]
-
-                avgfact=np.mean([fact1,fact2])
-                
-                #combine spectra
-                #change format of eas to array to allow operation over full spectrum before changing back
-                spec=list(np.array(spec_eas)*avgfact)
-                spec.extend(spec_step)
-                spec_uncert=list(np.array(spec_uncert_eas)*avgfact)
-                spec_uncert.extend(spec_uncert_step)        
-                
-                spec_type='fluence'
-                
-                
-            if selected_func=='peak flux':
-                #generate for EAS
-                #breakpoint()
-                spec_eas,spec_uncert_eas=peak_flux_spec_gen(time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
-                #generate for step
-                spec_step,spec_uncert_step=peak_flux_spec_gen(time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
-                #generate alignment factor
-                fact1=spec_step[4]/spec_eas[-1]
-                fact2=spec_step[0]/spec_eas[-2]
-
-                avgfact=np.mean([fact1,fact2])
-                
-                #combine spectra
-                #change format of eas to array to allow operation over full spectrum before changing back
-                spec=list(np.array(spec_eas)*avgfact)
-                spec.extend(spec_step)
-                spec_uncert=list(np.array(spec_uncert_eas)*avgfact)
-                spec_uncert.extend(spec_uncert_step)
-                
-                spec_type='peak_flux'
-        
-        else:
-            if selected_func=='fluence':
-                spec,spec_uncert=fluence_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
-                spec_type='fluence'
-                
-                
-            if selected_func=='peak flux':
-                #breakpoint()
-                spec,spec_uncert=peak_flux_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
-                spec_type='peak_flux'
-        
-        
-        
-        date= spec_mintime.strftime("%d-%m-%Y")        
-        TS_window.destroy()
-        plt.close(fig_TS)
-        inspex(time_series_energies, spec, spec_uncert, date, inst, spec_type)
-    
-
-    
-    button = tk.Button(master=TS_window, text="Select this background and spectrum range", command=TS_Select_btn_hndl)
-    button.pack(side=tk.TOP)
-    
-    
-    #for a selection of energy channels, convert from array to pd.series, resample for clarity then plot with appropriate label
-    if inst=="SolO-STEP":plotchans=[0, 4, 8, 12, 16, 20, 24, 28,30]
-    else:plotchans=np.linspace(0, len(time_series_energies) - 1, 9, dtype=int)
-    for channel in plotchans:
-        pd.Series(time_series_data_raw[:,channel],time_series_time_raw).resample(tsres).mean().plot(ax = ax_TS, logy=True, label=f'{round(time_series_energies[channel],2)} keV')#
-    ax_TS.set_ylim(bottom=1)
-    #fig_TS.autofmt_xdate()
-
-
-    fig_TS.canvas.draw()
-    canvas_TS = FigureCanvasTkAgg(fig_TS, master=TS_window) 
-    fig_TS.tight_layout()
-    canvas_TS.draw()  
-
-    canvas_TS.get_tk_widget().pack()
-
-
-    TS_window.mainloop()
-    
-    
-    
-
 
     
 
 
-
-
-
-
-
-#%% instrument selection window
-
-
-def instrument_choice():#function for the instrument choice window
-    global window_inst
-    window_inst = tk.Tk()#define window
-    window_inst.title('Select instrument and time range for spectral calculations')
-    window_inst.minsize(400, 400)
-    
-    frame_instopts=tk.Frame(master=window_inst)
-    
-    
-    greeting = tk.Label(master=frame_instopts,text="Inspex fitting GUI")#window name. MUST only have one tk.Tk(), all else must be .toplevel else crashes. This is .TK as is first to open 
-    greeting.pack()
-    OPTIONS = [
-        "SolO EPD STEP",
-        "[IDL REQUIRED] STEREO STE",
-        "SolO SWA EAS, FOV aligned to EPD STEP",
-        "Combined SolO SWA EAS and EPD STEP",
-        "Cross calibrated SolO SWA EAS and EPD STEP"
-        ]     
-    variable = tk.StringVar()
-    variable.set(OPTIONS[0]) # default value
-    
-    inst_opts = tk.OptionMenu(frame_instopts, variable, *OPTIONS)
-    inst_opts.pack()
-
-
-    label_explain=tk.Label(master=frame_instopts, text='Enter times in format: YYYY/mm/dd HH:MM:SS')
-    label_explain.pack(side=tk.LEFT)
-        
-    
-    
-    label_fitlims=tk.Label(master=frame_instopts, text='Start time')
-    label_fitlims.pack(side=tk.LEFT)
-    
-    start_entry = tk.Entry(master=frame_instopts,fg="black", bg="white", width=10)
-    start_entry.pack(side=tk.LEFT)
-    
-    label_fitlims=tk.Label(master=frame_instopts, text='End time')
-    label_fitlims.pack(side=tk.LEFT)
-    
-    end_entry = tk.Entry(master=frame_instopts,fg="black", bg="white", width=10)
-    end_entry.pack(side=tk.LEFT)
-    
-    
-    frame_specopts=tk.Frame(master=window_inst)
-    TYP_OPTIONS = [
-        "fluence","peak flux","flux at set time(s)"
-        
-        ]     
-    var_spec_type = tk.StringVar()
-    var_spec_type.set(TYP_OPTIONS[1]) # default value    
-    spec_opts = tk.OptionMenu(frame_specopts, var_spec_type, *TYP_OPTIONS)
-    spec_opts.pack()
-    frame_specopts.pack(side=tk.LEFT)
-    
-    #handling resampling selection
-    RES_OPTIONS = [
-        "No Resampling",
-        "1 minute resampling",
-        "2 minute resampling",
-        "5 minute resampling",
-        "10 minute resampling",
-        "30 minute resampling"
-        ]     
-    res_var = tk.StringVar()
-    res_var.set(RES_OPTIONS[0]) # default value
-    
-    res_opts = tk.OptionMenu(frame_instopts, res_var, *RES_OPTIONS)
-    res_opts.pack()
-    
-    
-    
-    #define spectrum loading, with file validation
-    def spec_file_validate(file_obj):
-        path,exten=os.path.splitext(file_obj.name)
-        if exten=='.txt' or exten=='.csv':
-            return True
-        else:return False
-        
-        
-        
-    def load_spec_hndl():
-        file_obj=tk.filedialog.askopenfile()
-        if not spec_file_validate(file_obj):#if correctly formatted 
-            tk.messagebox.showerror("Invalid Input",'Loaded spectrum must be .txt in correct format, saved via the fitting GUI')
-        else:        
-            spec_df=pd.read_csv(file_obj)
-            file_obj.close()
-            load_energies=spec_df['energies'].values
-            load_fluxes=spec_df['fluxes'].values
-            load_uncerts=spec_df['errors'].values
-            date=spec_df['date'].values[0]
-            inst=spec_df['inst'].values[0]
-            spec_type=spec_df['spec_type'].values[0]
-            window_inst.destroy()#closes current window
-        
-            inspex(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
-
-    
-
-        
-    #create spectrum load button
-    load_spec_button=tk.Button(
-    master=window_inst,
-    text="Load Previously created INSPEX (.txt) spectrum",
-    width=35,
-    height=5,
-    bg="white",
-    fg="black",
-    command=load_spec_hndl
-    )
-    load_spec_button.pack(side=tk.BOTTOM)
-    
-    
-    
-    
-    
-    def validate_date(date):
-        pattern = r'^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}$'
-        if len(date) == 19 and re.match(pattern, date):
-            return True
-        return False
-    
-    
-    def inst_opts_select():
-        
-        start_time=start_entry.get()#gets the entered value
-        end_time=end_entry.get()#gets the entered value
-        if not (validate_date(start_time) and validate_date(end_time)):#if correctly formatted 
-            tk.messagebox.showerror("Invalid Input",'Dates must have format: YYYY/mm/dd HH:MM:SS')
-        else:
-            selected_func=variable.get()
-            if selected_func=='SolO EPD STEP':
-                inst="SolO-STEP"
-            if selected_func=='[IDL REQUIRED] STEREO STE':
-                inst="STEREO STE"
-            if selected_func=='SolO SWA EAS, alligned to EPD STEP':
-                inst="SolO-EAS"
-            if selected_func== "Combined SolO SWA EAS and EPD STEP":
-                inst="SolO-EAS+STEP"
-            if selected_func== "Cross calibrated SolO SWA EAS and EPD STEP":
-                inst="SolO-EAS+STEP+FAF"
-                    
-            #handling the resampling selection
-            res_sel=res_var.get()
-            if res_sel=="No Resampling":
-                if inst=="SolO-EAS+STEP" or inst=="SolO-EAS+STEP+FAF":
-                    tk.messagebox.showerror("Invalid Input",'Combined instruments must have some resampling to align timings')
-                else:resample_dur=None#no resampling
-            else:
-                resample_dur=res_sel.split()[0]+"min"
-                    
-            
-                    
-            window_inst.destroy()#closes current window
-            window_inst.update()
-        
-            spec_type_sel=var_spec_type.get()
-            
-            if spec_type_sel=="fluence" or spec_type_sel=="peak flux":
-                
-                time_rng_select(inst,start_time,end_time,spec_type_sel,resample_dur)#runs time range selection function
-            
-            elif spec_type_sel=="flux at set time(s)":
-                intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur)
-        
-        
-
-
-
-    button = tk.Button(master=frame_instopts, text="Choose Instrument, data dates, and spectrum type", command=inst_opts_select)
-    button.pack(side=tk.BOTTOM)
-
-    frame_instopts.pack()   
-
-
-    window_inst.mainloop()
 
 #%%window to select time intervals
 
@@ -5048,17 +3961,17 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
     #load in data for selected probe. list of times, list of energies in keV, array of data in (times by energies), array of uncerts in (times by energies)
     if inst=="SolO-STEP":
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
                             
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="STEREO STE":
-        time_series_time,time_series_energies,time_series_data,time_series_uncert=stereo_data_load(start_time, end_time)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert=inspex.stereo_data_load(start_time, end_time)
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="SolO-EAS":
         low_e_cutoff=0.5
@@ -5079,9 +3992,9 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         #breakpoint()
-        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="SolO-EAS+STEP":
         #load eas
@@ -5103,18 +4016,18 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
+            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=inspex.resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
         
         #load step
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
         
         if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
+            step_time_series_time,step_time_series_data,step_time_series_uncert=inspex.resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
@@ -5144,18 +4057,18 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
+            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=inspex.resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
         
         #load step
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
         
         if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
+            step_time_series_time,step_time_series_data,step_time_series_uncert=inspex.resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
@@ -5573,13 +4486,13 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
             for count,i in enumerate(spectra):#fit all the spectra
                 spec=i[0]
                 spec_uncert=i[1]
-                inspex(time_series_energies, spec, spec_uncert, intervals[count], inst, spec_type)
+                inspex_fn(time_series_energies, spec, spec_uncert, intervals[count], inst, spec_type)
                 fitted_params[count,0]=parvals_new
                 fitted_params[count,1]=param_uncert_calced
                 
 
         else: #auto loop intervals after first one
-            inspex(time_series_energies, spectra[0][0], spectra[0][1], intervals[0], inst, spec_type)
+            inspex_fn(time_series_energies, spectra[0][0], spectra[0][1], intervals[0], inst, spec_type)
             fitted_params[0,0]=parvals
             fitted_params[0,1]=param_uncert_calced
             output=parvals

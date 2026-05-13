@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+src/inspex/__init__.py
+src/inspex/instrument_choice.py
+src/inspex/step_data_load.py
+src/inspex.egg-info/PKG-INFO
+src/inspex.egg-info/SOURCES.txt
+src/inspex.egg-info/dependency_links.txt
+src/inspex.egg-info/entry_points.txt
+src/inspex.egg-info/top_level.txt

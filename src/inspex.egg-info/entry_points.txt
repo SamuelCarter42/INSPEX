@@ -1,0 +1,2 @@
+[console_scripts]
+inspex = inspex:instrument_choice

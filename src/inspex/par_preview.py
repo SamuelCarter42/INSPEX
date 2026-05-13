@@ -2,7 +2,7 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-from . import broken_power_law,therm_func,lin_func,lin_func2,gauss_func,power_func,kappa_func,bpl_and_therm_func,double_therm_func,triple_power_law,quad_power_law,quint_power_law
+from .fitting_and_resids import broken_power_law,therm_func,lin_func,lin_func2,gauss_func,power_func,kappa_func,bpl_and_therm_func,double_therm_func,triple_power_law,quad_power_law,quint_power_law
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
 import numpy as np #general mathematical operations

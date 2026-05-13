@@ -15,7 +15,7 @@ import datetime as dt#handles general datetime operations
 import pandas as pd #module for dataframe and time series handling
 import scipy #for reading in idl saves and other various functions
 import subprocess #for running IDL codes
-import stereo_idl_caller#for calling the IDL code required to calibrate the STEREO data and convert it to flux
+from . import stereo_idl_caller#for calling the IDL code required to calibrate the STEREO data and convert it to flux
 import re#for handling regexs to validate inputs
 import random as rn#for random number and choice utility, particularly in uncertainty estimation
 from tqdm import tqdm #for tracking progress of long iterables

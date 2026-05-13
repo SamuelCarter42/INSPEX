@@ -3,7 +3,20 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-from . import resample_func,load_early_step_data,load_late_step_data,stereo_data_load,EAS_data_load,interval_spec_gen,fitting,fitting_gui,fluence_spec_gen,peak_flux_spec_gen
+from .interval_spectrum_gen import interval_spec_gen
+from .spectrum_gen import fluence_spec_gen,peak_flux_spec_gen
+from .resamplers import resample_func
+from .step_data_load import load_early_step_data,load_late_step_data
+from .stereo_data_load import stereo_data_load
+from .eas_data_load import EAS_data_load
+from .interval_spectrum_gen  import interval_spec_gen 
+from .fitting_and_resids import fitting
+from .fitting_gui import fitting_gui
+
+
+
+
+
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk

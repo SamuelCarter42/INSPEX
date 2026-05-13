@@ -1,5 +1,5 @@
 import numpy as np
-from . import avg_bg_calc
+from .spectrum_gen import avg_bg_calc
 
 
 #%%spectrum generation for a single time

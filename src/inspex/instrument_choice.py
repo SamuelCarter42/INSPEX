@@ -180,7 +180,7 @@ def instrument_choice():#function for the instrument choice window
                 inspex.time_rng_select(inst,start_time,end_time,spec_type_sel,resample_dur)#runs time range selection function
             
             elif spec_type_sel=="flux at set time(s)":
-                intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur)
+                inspex.intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur)
         
         
 

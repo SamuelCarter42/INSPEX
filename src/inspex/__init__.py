@@ -6,3 +6,5 @@ from .instrument_choice import *
 from .time_rng_select import *
 from .resamplers import *
 from .spectrum_gen import *
+from .interval_spectrum_gen import *
+from .interval_select import *

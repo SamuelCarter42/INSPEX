@@ -2,7 +2,8 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-from . import param_preview,param_load,param_save
+from .par_preview import param_preview
+from .param_save_load import param_load, param_save
 
 
 import tkinter as tk #this module contains most of the functions to run the gui

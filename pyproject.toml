@@ -5,7 +5,21 @@ build-backend="setuptools.build_meta"
 [project]
 version="0.1"
 name="inspex"
-
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+    "lmfit",
+    "emcee",
+    "numdifftools",
+    "tqdm",
+    "solo-epd-loader",
+    "sunpy",
+    "sunpy-soar",
+    "astropy",
+    "spacepy",
+]
 [project.scripts]
 inspex="inspex:fitting_gui"
 instrument_choice="inspex:instrument_choice"

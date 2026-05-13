@@ -2,7 +2,7 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-from . import stereo_data_load_calib
+from .stereo_idl_caller import stereo_data_load_calib
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk

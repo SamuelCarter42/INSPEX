@@ -15,3 +15,5 @@ from .par_preview import *
 from .fitting_gui import *
 from .bootstrap_for_uncert import *
 from .stereo_idl_caller import *
+from .idl_loactor import *
+from .idl_command_execute import *

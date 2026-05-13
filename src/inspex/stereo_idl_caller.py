@@ -3,8 +3,8 @@ import subprocess
 
 import sys
 import datetime as dt#handles general datetime operations
-import idl_locator#for finding the user's IDL install
-from idl_command_execute import run_idl_command
+from. import idl_locator#for finding the user's IDL install
+from .idl_command_execute import run_idl_command,run_idl_script
 
 def stereo_data_load_calib(start_time,end_time,date,this_folder):
     

@@ -3,9 +3,7 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-import inspex
-#breakpoint()
-sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
+from . import resample_func,load_early_step_data,load_late_step_data,stereo_data_load,EAS_data_load,interval_spec_gen,fitting,fitting_gui,fluence_spec_gen,peak_flux_spec_gen
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
@@ -30,17 +28,17 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
     #load in data for selected probe. list of times, list of energies in keV, array of data in (times by energies), array of uncerts in (times by energies)
     if inst=="SolO-STEP":
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
                             
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="STEREO STE":
-        time_series_time,time_series_energies,time_series_data,time_series_uncert=inspex.stereo_data_load(start_time, end_time)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert=stereo_data_load(start_time, end_time)
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="SolO-EAS":
         low_e_cutoff=0.5
@@ -61,9 +59,9 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         #breakpoint()
-        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="SolO-EAS+STEP":
         #load eas
@@ -85,18 +83,18 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=inspex.resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
+            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
         
         #load step
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
         
         if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=inspex.resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
+            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
@@ -126,18 +124,18 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=inspex.resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
+            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
         
         #load step
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
         
         if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=inspex.resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
+            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
@@ -325,9 +323,9 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         if inst=="SolO-EAS+STEP+FAF":
             if selected_func=='fluence':
                 #generate for EAS
-                spec_eas,spec_uncert_eas=inspex.fluence_spec_gen(time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
+                spec_eas,spec_uncert_eas=fluence_spec_gen(time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
                 #generate for step
-                spec_step,spec_uncert_step=inspex.fluence_spec_gen(time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
+                spec_step,spec_uncert_step=fluence_spec_gen(time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
                 #generate alignment factor
                 fact1=spec_step[4]/spec_eas[-1]
                 fact2=spec_step[0]/spec_eas[-2]
@@ -347,9 +345,9 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
             if selected_func=='peak flux':
                 #generate for EAS
                 #breakpoint()
-                spec_eas,spec_uncert_eas=inspex.peak_flux_spec_gen(time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
+                spec_eas,spec_uncert_eas=peak_flux_spec_gen(time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
                 #generate for step
-                spec_step,spec_uncert_step=inspex.peak_flux_spec_gen(time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
+                spec_step,spec_uncert_step=peak_flux_spec_gen(time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
                 #generate alignment factor
                 fact1=spec_step[4]/spec_eas[-1]
                 fact2=spec_step[0]/spec_eas[-2]
@@ -367,13 +365,13 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         
         else:
             if selected_func=='fluence':
-                spec,spec_uncert=inspex.fluence_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
+                spec,spec_uncert=fluence_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
                 spec_type='fluence'
                 
                 
             if selected_func=='peak flux':
                 #breakpoint()
-                spec,spec_uncert=inspex.peak_flux_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
+                spec,spec_uncert=peak_flux_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,spec_mintime,spec_maxtime)
                 spec_type='peak_flux'
         
         
@@ -381,7 +379,7 @@ def time_rng_select(inst, start_time, end_time,spec_type_sel,resample_dur):#func
         date= spec_mintime.strftime("%d-%m-%Y")        
         TS_window.destroy()
         plt.close(fig_TS)
-        inspex.fitting_gui(time_series_energies, spec, spec_uncert, date, inst, spec_type)
+        fitting_gui(time_series_energies, spec, spec_uncert, date, inst, spec_type)
     
 
     

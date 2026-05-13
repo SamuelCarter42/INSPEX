@@ -2,9 +2,7 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-import inspex
-#breakpoint()
-sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
+from . import stereo_data_load_calib
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
@@ -16,7 +14,7 @@ import datetime as dt#handles general datetime operations
 import pandas as pd #module for dataframe and time series handling
 import scipy #for reading in idl saves and other various functions
 
-import stereo_idl_caller#for calling the IDL code required to calibrate the STEREO data and convert it to flux
+#for calling the IDL code required to calibrate the STEREO data and convert it to flux
 
 
 
@@ -31,7 +29,8 @@ def stereo_data_load(start_time, end_time):
     this_folder=os.path.realpath(os.getcwd())
     this_folder=str(this_folder).replace('\\', '/')
     #run the function that calls the IDL load and calibration function
-    stereo_idl_caller.stereo_data_load_calib(start_time,end_time,date,this_folder)
+    #for calling the IDL code required to calibrate the STEREO data and convert it to flux
+    stereo_data_load_calib(start_time,end_time,date,this_folder)
     
     
     

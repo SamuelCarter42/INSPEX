@@ -1,4 +1,4 @@
-import inspex
+from . import resample_func,load_early_step_data,load_late_step_data,stereo_data_load,EAS_data_load,interval_spec_gen,fitting,fitting_gui
 import numpy as np
 import datetime as dt#handles general datetime operations
 import pandas as pd #module for dataframe and time series handling
@@ -16,17 +16,17 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
     #load in data for selected probe. list of times, list of energies in keV, array of data in (times by energies), array of uncerts in (times by energies)
     if inst=="SolO-STEP":
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
+            time_series_time,time_series_energies,time_series_data,time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
                             
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="STEREO STE":
-        time_series_time,time_series_energies,time_series_data,time_series_uncert=inspex.stereo_data_load(start_time, end_time)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert=stereo_data_load(start_time, end_time)
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="SolO-EAS":
         low_e_cutoff=0.5
@@ -47,9 +47,9 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         #breakpoint()
-        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        time_series_time,time_series_energies,time_series_data,time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:
-            time_series_time,time_series_data,time_series_uncert=inspex.resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
+            time_series_time,time_series_data,time_series_uncert=resample_func(time_series_time,time_series_data,time_series_uncert,resample_dur)
     
     if inst=="SolO-EAS+STEP":
         #load eas
@@ -71,18 +71,18 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=inspex.resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
+            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
         
         #load step
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
         
         if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=inspex.resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
+            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
@@ -112,18 +112,18 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         [-0.7285,  0.6653, -0.1635],
         [-0.7008,  0.6401, -0.315 ]])
         
-        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=inspex.EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
+        eas_time_series_time,eas_time_series_energies,eas_time_series_data,eas_time_series_uncert,energy_lims_eas=EAS_data_load(date_for_spec,start_time, end_time,epd_xyz_sectors,low_e_cutoff)
         if resample_dur!=None:#resample eas
-            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=inspex.resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
+            eas_time_series_time,eas_time_series_data,eas_time_series_uncert=resample_func(eas_time_series_time,eas_time_series_data,eas_time_series_uncert,resample_dur)
         
         #load step
         if dt.datetime.strptime(start_time,"%Y/%m/%d %H:%M:%S")<dt.datetime.strptime('2021/10/22',"%Y/%m/%d"):#time before recalibration:
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_early_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_early_step_data(start_time, end_time)
         else:#post-recalibration, later data recalibrated and changed-must have different routines to interpret
-            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=inspex.load_late_step_data(start_time, end_time)
+            step_time_series_time,step_time_series_energies,step_time_series_data,step_time_series_uncert,epd_xyz_sectors,energy_lims=load_late_step_data(start_time, end_time)
         
         if resample_dur!=None:#resample step
-            step_time_series_time,step_time_series_data,step_time_series_uncert=inspex.resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
+            step_time_series_time,step_time_series_data,step_time_series_uncert=resample_func(step_time_series_time,step_time_series_data,step_time_series_uncert,resample_dur)
         
         #after resampling, time series should line up. we take eas
         time_series_time=eas_time_series_time
@@ -496,8 +496,8 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         #and then generate the two halves and align into one
         if inst=="SolO-EAS+STEP+FAF":
             #generate the list of spectra for each instrument
-            spectra_eas=inspex.interval_spec_gen(time_series_time, eas_time_series_energies, eas_time_series_data, eas_time_series_uncert, bg_mintime, bg_maxtime, intervals)
-            spectra_step=inspex.interval_spec_gen(time_series_time, step_time_series_energies, step_time_series_data, step_time_series_uncert, bg_mintime, bg_maxtime, intervals)
+            spectra_eas=interval_spec_gen(time_series_time, eas_time_series_energies, eas_time_series_data, eas_time_series_uncert, bg_mintime, bg_maxtime, intervals)
+            spectra_step=interval_spec_gen(time_series_time, step_time_series_energies, step_time_series_data, step_time_series_uncert, bg_mintime, bg_maxtime, intervals)
    
             #cross calibrate and combine each spectrum 
             spectra=list()
@@ -522,7 +522,7 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
                 spec_uncert.extend(spec_uncert_step)
                 spectra.append((spec,spec_uncert))
         else:
-            spectra=inspex.interval_spec_gen(time_series_time, time_series_energies, time_series_data, time_series_uncert, bg_mintime, bg_maxtime, intervals)
+            spectra=interval_spec_gen(time_series_time, time_series_energies, time_series_data, time_series_uncert, bg_mintime, bg_maxtime, intervals)
         
         
         
@@ -541,13 +541,13 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
             for count,i in enumerate(spectra):#fit all the spectra
                 spec=i[0]
                 spec_uncert=i[1]
-                inspex.fitting_gui(time_series_energies, spec, spec_uncert, intervals[count], inst, spec_type)
+                fitting_gui(time_series_energies, spec, spec_uncert, intervals[count], inst, spec_type)
                 fitted_params[count,0]=parvals_new
                 fitted_params[count,1]=param_uncert_calced
                 
 
         else: #auto loop intervals after first one
-            inspex.fitting_gui(time_series_energies, spectra[0][0], spectra[0][1], intervals[0], inst, spec_type)
+            fitting_gui(time_series_energies, spectra[0][0], spectra[0][1], intervals[0], inst, spec_type)
             fitted_params[0,0]=parvals
             fitted_params[0,1]=param_uncert_calced
             output=parvals
@@ -555,7 +555,7 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
                 spec=i[0]
                 spec_uncert=i[1]
                 global x_data_E_sliced
-                parvals,param_uncert_calced,x_data_E_sliced=inspex.fitting(header,output,vary,minval,maxval,time_series_energies,spec,spec_uncert,fitmin,fitmax)
+                parvals,param_uncert_calced,x_data_E_sliced=fitting(header,output,vary,minval,maxval,time_series_energies,spec,spec_uncert,fitmin,fitmax)
                 #fit_window.quit()
                 #preview_window.quit()
                 fitted_params[count+1,0]=parvals

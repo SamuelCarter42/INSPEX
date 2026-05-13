@@ -2,9 +2,8 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-import inspex
-#breakpoint()
-sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
+
+
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
@@ -21,7 +20,7 @@ import scipy #for reading in idl saves and other various functions
 import re#for handling regexs to validate inputs
 import random as rn#for random number and choice utility, particularly in uncertainty estimation
 from tqdm import tqdm #for tracking progress of long iterables
-from bootstrap_for_uncert_v7 import uncert_bootstrap
+
 import math
 import numdifftools
 import random#needed for random numbers

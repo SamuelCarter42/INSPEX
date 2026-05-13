@@ -1,10 +1,10 @@
 import numpy as np
-import inspex
+from . import avg_bg_calc
 
 
 #%%spectrum generation for a single time
 def interval_spec_gen(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime,intervals):
-    bg_spec, bg_spec_uncert=inspex.avg_bg_calc(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime)#background generating function
+    bg_spec, bg_spec_uncert=avg_bg_calc(time_series_time,time_series_energies,time_series_data,time_series_uncert,bg_mintime,bg_maxtime)#background generating function
     #print(time_series_time)
     spectra=list()
     for interval in intervals:

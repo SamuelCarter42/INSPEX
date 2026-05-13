@@ -13,3 +13,5 @@ from .param_save_load import *
 from .build_fit_window import *
 from .par_preview import *
 from .fitting_gui import *
+from .bootstrap_for_uncert import *
+from .stereo_idl_caller import *

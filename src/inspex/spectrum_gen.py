@@ -2,9 +2,6 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-import inspex
-#breakpoint()
-sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk

@@ -2,9 +2,7 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-import inspex
-#breakpoint()
-sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
+from . import build_fit_window
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
@@ -18,11 +16,11 @@ import datetime as dt#handles general datetime operations
 import pandas as pd #module for dataframe and time series handling
 import scipy #for reading in idl saves and other various functions
 import subprocess #for running IDL codes
-import stereo_idl_caller#for calling the IDL code required to calibrate the STEREO data and convert it to flux
+
 import re#for handling regexs to validate inputs
 import random as rn#for random number and choice utility, particularly in uncertainty estimation
 from tqdm import tqdm #for tracking progress of long iterables
-from bootstrap_for_uncert_v7 import uncert_bootstrap
+
 import math
 import numdifftools
 import random#needed for random numbers
@@ -141,5 +139,5 @@ def fitting_gui(x_data,y_data,uncert,date,inst,spec_type):# mainloop function fo
     
     
     
-    inspex.build_fit_window(x_data,y_data,uncert,date,inst,spec_type)
+    build_fit_window(x_data,y_data,uncert,date,inst,spec_type)
     fit_window.mainloop()

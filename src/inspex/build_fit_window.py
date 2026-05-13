@@ -2,9 +2,8 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-import inspex
-#breakpoint()
-sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
+from . import param_preview,param_load,param_save
+
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
@@ -2065,7 +2064,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
         
         except ValueError:
                tk.messagebox.showerror("Invalid Input","inputs should be floating point intergers preview")
-        inspex.param_preview(x_data,y_data,init,header)#calls previously defined save function
+        param_preview(x_data,y_data,init,header)#calls previously defined save function
     
 
     
@@ -2094,12 +2093,12 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 
 #%%load savehandling
     def save_btn_hndl():#function to handle save button
-        inspex.param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres, power_pres, kappa_pres,bpl_and_therm_pres, double_therm_func_pres, tpl_pres, qpl_pres,quint_pl_pres,redchi)#calls previously defined save function
+        param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres, power_pres, kappa_pres,bpl_and_therm_pres, double_therm_func_pres, tpl_pres, qpl_pres,quint_pl_pres,redchi)#calls previously defined save function
     
 
     def load_btn_hndl():#function to handle load button
         global header
-        header,parvals_ld=inspex.param_load(date,inst,spec_type)
+        header,parvals_ld=param_load(date,inst,spec_type)
         
         global init
         global vary

@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-
 #%%Initial set up
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-import inspex
-#breakpoint()
-sys.path.append(f"{os.getcwd()}/Dependencies")#ensures that dependencies folder is available at point that modules are loaded
+from . import fitting_gui,time_rng_select,intervals_select
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
@@ -112,7 +108,7 @@ def instrument_choice():#function for the instrument choice window
             spec_type=spec_df['spec_type'].values[0]
             window_inst.destroy()#closes current window
         
-            inspex.fitting_gui(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
+            fitting_gui(load_energies, load_fluxes, load_uncerts, date, inst, spec_type)
 
     
 
@@ -177,10 +173,10 @@ def instrument_choice():#function for the instrument choice window
             
             if spec_type_sel=="fluence" or spec_type_sel=="peak flux":
                 
-                inspex.time_rng_select(inst,start_time,end_time,spec_type_sel,resample_dur)#runs time range selection function
+                time_rng_select(inst,start_time,end_time,spec_type_sel,resample_dur)#runs time range selection function
             
             elif spec_type_sel=="flux at set time(s)":
-                inspex.intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur)
+                intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur)
         
         
 

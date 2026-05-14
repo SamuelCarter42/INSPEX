@@ -34,13 +34,6 @@ from tqdm import tqdm
 import sys
 from spacepy import pycdf
 
-sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/In situ spectrum gui')
-sys.path.append('C:/Users/w23014130/OneDrive - Northumbria University - Production Azure AD/Documents/PhD/In situ spectrum gui/Dependencies')
-
-
-
-
-
 
 def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 

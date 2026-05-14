@@ -1,0 +1,13 @@
+numpy
+pandas
+scipy
+matplotlib
+lmfit
+emcee
+numdifftools
+tqdm
+solo-epd-loader
+sunpy
+sunpy-soar
+astropy
+spacepy

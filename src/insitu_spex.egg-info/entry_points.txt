@@ -1,0 +1,4 @@
+[console_scripts]
+inspex = INSPEX:fitting_gui
+instrument_choice = INSPEX:instrument_choice
+time_rng_select = INSPEX:time_rng_select

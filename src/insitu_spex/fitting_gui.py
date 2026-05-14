@@ -2,7 +2,7 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-from . import build_fit_window
+from .build_fit_window import build_fit_window
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk

@@ -2,7 +2,12 @@
 import sys#for file path handling
 import os#has general functions for file manipulation
 
-from . import fitting_gui,time_rng_select,intervals_select
+from .fitting_gui import fitting_gui
+
+from .time_rng_select import time_rng_select
+
+from .intervals_select import intervals_select
+
 
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk

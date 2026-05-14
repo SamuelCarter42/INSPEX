@@ -34,7 +34,7 @@ INSPEX can be used in two ways: through its interactive GUI (recommended for new
 
 #### Step 1 — Instrument & Data Selection
 
-Call `instrument_choice()` at the console after running the INSPEX script. This opens a window where you can:
+Call `insitu_spex.instrument_choice()` at the console after installing INSPEX using "pip install insitu_spex" . This opens a window where you can:
 
 - Load data using INSPEX's built-in loaders for **SolO STEP**, **SolO EAS**, and **STEREO STE-D**
 - Select a spectrum generation method: **instantaneous**, **peak flux**, or **fluence**

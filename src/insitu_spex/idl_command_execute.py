@@ -1,6 +1,6 @@
 
     #need to include method to locate idl install directory in other system
-from . import idl_locator#for finding the user's IDL install 
+from .idl_locator import idl_locator#for finding the user's IDL install 
 import subprocess
 
 def run_idl_command(idl_command):

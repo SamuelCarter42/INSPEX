@@ -7,7 +7,7 @@ from .time_rng_select import *
 from .resamplers import *
 from .spectrum_gen import *
 from .interval_spectrum_gen import *
-from .interval_select import *
+from .intervals_select import *
 from .fitting_and_resids import *
 from .param_save_load import *
 from .build_fit_window import *

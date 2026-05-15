@@ -3,6 +3,7 @@ import sys#for file path handling
 import os#has general functions for file manipulation
 
 from .fitting_and_resids import broken_power_law,therm_func,lin_func,lin_func2,gauss_func,power_func,kappa_func,bpl_and_therm_func,double_therm_func,triple_power_law,quad_power_law,quint_power_law
+from . import state  #shared cross-module state
 import tkinter as tk #this module contains most of the functions to run the gui
 from tkinter import ttk
 import numpy as np #general mathematical operations
@@ -130,8 +131,7 @@ def param_preview(x_data,y_data,parvals,header):
         x0_5pl=parvals["x0_5pl"]
         dx_5pl=parvals["dx_5pl"]
         
-    global test_func
-    def test_func(x,parvals,header): # this function is the one we are trying to fit to the data
+    def _test_func(x,parvals,header): # this function is the one we are trying to fit to the data
         
     #if x data list, create y data as list too. else if x is array, use array for y
         if type(x)==list:
@@ -256,18 +256,18 @@ def param_preview(x_data,y_data,parvals,header):
             y+=quint_power_law(x, x1_5pl, x2_5pl, x3_5pl, x4_5pl, A_5pl, B_5pl, A2_5pl, B2_5pl, A3_5pl, B3_5pl, A4_5pl, B4_5pl, A5_5pl, B5_5pl,x0_5pl,dx_5pl)
             
         return y
+    state.test_func = _test_func  #store in shared state for other modules
     #print(header)
-    fit=test_func(x_model,parvals,header)# y-values for our new modeled fit
+    fit=state.test_func(x_model,parvals,header)# y-values for our new modeled fit
 
     #open a new figure in a new window
     
     plot_wind_size=(6,4)#define the window size for the plots
     
-    global preview_window
-    preview_window=tk.Toplevel()
-    preview_window.title('Preview window')
-    preview_window.rowconfigure(0, weight=1)
-    preview_window.columnconfigure(0, weight=1)
+    state.preview_window=tk.Toplevel()
+    state.preview_window.title('Preview window')
+    state.preview_window.rowconfigure(0, weight=1)
+    state.preview_window.columnconfigure(0, weight=1)
     fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_fit= fig_fit.add_subplot(1, 1, 1)
     
@@ -293,7 +293,7 @@ def param_preview(x_data,y_data,parvals,header):
 
         ax_fit.plot(x_model,fit3, 'g', label='Broken Power Law',linestyle='dotted')
         ax_fit.plot(x_model,fit4, 'g')
-        ax_fit.scatter(x1,test_func(int(x1),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1,state.test_func(int(x1),parvals,header),zorder=100000,c='black')
 
         
     if header[42]=='1': #ie if gaussian is present
@@ -331,8 +331,8 @@ def param_preview(x_data,y_data,parvals,header):
         ax_fit.plot(x_model,fit12, 'g')
         ax_fit.plot(x_model,fit13, 'g', label='Broken Power Law',linestyle='dotted')
         ax_fit.plot(x_model,fit14, 'g')
-        ax_fit.scatter(x1_tpl,test_func(int(x1_tpl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x2_tpl,test_func(int(x2_tpl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1_tpl,state.test_func(int(x1_tpl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x2_tpl,state.test_func(int(x2_tpl),parvals,header),zorder=100000,c='black')
       
         
     if header[142]=='1':# ie if the qpl is present
@@ -350,9 +350,9 @@ def param_preview(x_data,y_data,parvals,header):
         ax_fit.plot(x_model,fit16, 'g', label='Quadruple Power Law',linestyle='dotted')
         ax_fit.plot(x_model,fit17, 'g')
         ax_fit.plot(x_model,fit18, 'g')
-        ax_fit.scatter(x1_qpl,test_func(int(x1_qpl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x2_qpl,test_func(int(x2_qpl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x3_qpl,test_func(int(x3_qpl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1_qpl,state.test_func(int(x1_qpl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x2_qpl,state.test_func(int(x2_qpl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x3_qpl,state.test_func(int(x3_qpl),parvals,header),zorder=100000,c='black')
         
         
     if header[159]=='1':# ie if the 5pl is present
@@ -373,10 +373,10 @@ def param_preview(x_data,y_data,parvals,header):
         ax_fit.plot(x_model,fit21, 'g')
         ax_fit.plot(x_model,fit22, 'g')
         ax_fit.plot(x_model,fit23, 'g')
-        ax_fit.scatter(x1_5pl,test_func(int(x1_5pl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x2_5pl,test_func(int(x2_5pl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x3_5pl,test_func(int(x3_5pl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x4_5pl,test_func(int(x4_5pl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1_5pl,state.test_func(int(x1_5pl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x2_5pl,state.test_func(int(x2_5pl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x3_5pl,state.test_func(int(x3_5pl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x4_5pl,state.test_func(int(x4_5pl),parvals,header),zorder=100000,c='black')
             
     ax_fit.set_yscale("log")
     ax_fit.set_xscale("log")
@@ -386,6 +386,6 @@ def param_preview(x_data,y_data,parvals,header):
     ax_fit.set_xlim(np.nanmin(x_model),np.nanmax(x_model))
     
     ax_fit.grid()
-    canvas_fit = FigureCanvasTkAgg(fig_fit, master=preview_window) 
+    canvas_fit = FigureCanvasTkAgg(fig_fit, master=state.preview_window) 
     canvas_fit.draw()  
     canvas_fit.get_tk_widget().pack(fill="both",expand=True)

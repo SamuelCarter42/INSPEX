@@ -26,6 +26,7 @@ import numdifftools
 import random#needed for random numbers
 
 import threading  #required to allow gui updates during code
+from . import state  #shared cross-module state
 #%%functions for fitting
 k_B=8.617333262*(10**-8) # Boltzmann constant in keV per kelvin
 G=6.67430e-11#in N m^2 kg^-2
@@ -181,8 +182,8 @@ def resid_calc(pars,x_data,y_data,uncert,header): #defines the calculator for re
     parvals=pars.valuesdict() #converts the parameters to a dictionary form
 
     #calculate values
-    calcd_vals=test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
-    #calc resids
+    calcd_vals=state.test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
+    #calc state.resids
     resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)) #calculates the residuals
     return list(resids)
 
@@ -193,12 +194,12 @@ def neg_max_like(pars,x_data,y_data,uncert,header):#the negative maximum log lik
     #prob of measuring counts given model
     
     #calculate values
-    calcd_vals=test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
+    calcd_vals=state.test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
     
     # numerical safety: mu must be positive
     uncert = np.maximum(uncert, 1e-12)
 
-    resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)) #calculates the residuals
+    state.resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)) #calculates the residuals
     n=len(x_data)
     nll = 0.5 * (n * np.log(2*np.pi) + np.sum(np.log(uncert**2)) + np.sum(resids**2))
     return nll
@@ -206,27 +207,24 @@ def neg_max_like(pars,x_data,y_data,uncert,header):#the negative maximum log lik
 
 def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,spec_type): #defines our fitting process
     
-    global fit_window
-    global preview_window
-    global resid_window
-    if fit_window is not None:# and fit_window.winfo_exists():
+    if state.fit_window is not None:# and state.fit_window.winfo_exists():
         #close any open figues
-        #fit_window.destroy()
-        fit_window=None
+        #state.fit_window.destroy()
+        state.fit_window=None
         
 
     
     
     
-    if resid_window is not None:# and resid_window.winfo_exists():
+    if state.resid_window is not None:# and state.resid_window.winfo_exists():
         #close any open figues
-        #resid_window.destroy()
-        resid_window=None
+        #state.resid_window.destroy()
+        state.resid_window=None
     
-    if preview_window is not None:# and preview_window.winfo_exists():
+    if state.preview_window is not None:# and state.preview_window.winfo_exists():
         #close any open figues
-        #preview_window.destroy()
-        preview_window=None
+        #state.preview_window.destroy()
+        state.preview_window=None
     
     #set range to user defined fitting limits
     x_data_sliced=list()
@@ -239,8 +237,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
           uncert_sliced.append(uncert[pos])
     #save fitted energy range so that it can be retireved
     #build test function according to the user set options
-    global test_func
-    def test_func(x,parvals,header): # this function is the one we are trying to fit to the data
+    def _test_func(x,parvals,header): # this function is the one we are trying to fit to the data
         #print('testtest')
         #if x data list, create y data as list too. else if x is array, use array for y
         if type(x)==list:
@@ -366,6 +363,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
             
     
         return y
+    state.test_func = _test_func  #store in shared state for other modules
     
     #define params with bounds and initial values
     params=lmfit.Parameters()
@@ -504,7 +502,6 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     pb.pack(pady=20)
     #breakpoint()
     def run_fit():
-        global result, fitter_local
         best_result = None
         lowest_chisq = float("inf")
         n_seeds = 10
@@ -536,7 +533,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                 fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
                 scale_covar=True)
             
-            result = fitter_local.minimize(
+            state.result = fitter_local.minimize(
                     method='least_squares',
                     max_nfev=50000,
                     x_scale='jac',
@@ -552,18 +549,15 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
 
     #write error report (optional, un comment for print to console)
-    global fit_summary
-    global result
-    fit_summary=lmfit.fit_report(result)
+    state.fit_summary=lmfit.fit_report(state.result)
 
-    global bic
-    bic=result.bic
+    state.bic=state.result.bic
     
     #unpack params object
-    pars=result.params
-    global parvals
+    pars=state.result.params
     #convert params object to a dictionary
-    parvals=pars.valuesdict()
+    state.parvals=pars.valuesdict()
+    parvals=state.parvals   #local alias for convenience in unpacking below
     
     #read the parameters dictionary, according to the functions that should be present
     if header[9]=='1':# ie if the bpl is present
@@ -668,22 +662,20 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #print(B)
     
     #calculate the chi squared of the fit
-    y_fit=test_func(x_data_sliced,parvals,header)#fitted y values
+    y_fit=state.test_func(x_data_sliced,state.parvals,header)#fitted y values
     chi_sq=sum(((y_fit-y_data_sliced)/uncert_sliced)**2)#chi squared
 
     #calc reduced chi sq
-    dof=len(y_data_sliced)-len(parvals)#degrees of freedom
-    global redchi
-    redchi=chi_sq/dof
+    dof=len(y_data_sliced)-len(state.parvals)#degrees of freedom
+    state.redchi=chi_sq/dof
 
 
     #breakpoint()
     #return the parameter uncertainties as well
-    global param_uncert_calced
-    native_uncert=result.errorbars#this determines if uncerts were generated natively in the fit
+    native_uncert=state.result.errorbars#this determines if uncerts were generated natively in the fit
     if native_uncert:#if fitter generated uncerts, use those
         print('native uncerts use')
-        param_uncert_calced={param_name: param.stderr for param_name, param in result.params.items()}#output requires some reprocessing to correct form by removing param values
+        state.param_uncert_calced={param_name: param.stderr for param_name, param in state.result.params.items()}#output requires some reprocessing to correct form by removing param values
 
     else:#if fitter has not generated uncerts, use bayesian posterior method
         print('bayes uncerts use')
@@ -694,19 +686,19 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         highest_prob = np.argmax(posterior.lnprob)
         hp_loc = np.unravel_index(highest_prob, posterior.lnprob.shape)
         mle_soln = posterior.chain[hp_loc]#chain item at location of highest prob
-        param_uncert_calced=dict()#set up uncert starage object 
-        for name, param in parvals.items():#go through each parameter. if varying get stderr, if not is 0
+        state.param_uncert_calced=dict()#set up uncert starage object 
+        for name, param in state.parvals.items():#go through each parameter. if varying get stderr, if not is 0
             if vary[name]:#chain only has varying params! must make sure they only use these
-                param_uncert_calced[name]=posterior.params[name].stderr
+                state.param_uncert_calced[name]=posterior.params[name].stderr
             else:#for non-varying params
-                param_uncert_calced[name] =0
+                state.param_uncert_calced[name] =0
             
             
     
 
-    #%%result plotting
+    #%%state.result plotting
     x_model=np.logspace(np.log10(min(x_data)), np.log10(max(x_data)), 1000000)#set up an x-model for plotting the fitted line
-    fit=test_func(x_model,parvals,header)# y-values for our new modeled fit
+    fit=state.test_func(x_model,state.parvals,header)# y-values for our new modeled fit
     
 
     
@@ -720,20 +712,20 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
 
     
-    if fit_window is not None:# and fit_window.winfo_exists():
+    if state.fit_window is not None:# and state.fit_window.winfo_exists():
             #close any open figues
-        fit_window.destroy()
-        fit_window=None
+        state.fit_window.destroy()
+        state.fit_window=None
         print("test") 
     
     #open a window, around which the main program section is built
     
     plot_wind_size=(6,4)#define the window size for the plots
     
-    fit_window=tk.Toplevel()
-    fit_window.title('Fit window')
-    fit_window.rowconfigure(0, weight=1)
-    fit_window.columnconfigure(0, weight=1)
+    state.fit_window=tk.Toplevel()
+    state.fit_window.title('Fit window')
+    state.fit_window.rowconfigure(0, weight=1)
+    state.fit_window.columnconfigure(0, weight=1)
     fig_fit =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_fit= fig_fit.add_subplot()#1, 1, 1)
     
@@ -769,7 +761,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
         ax_fit.plot(x_model,fit3, 'g', label='Broken Power Law',linestyle='dotted')
         ax_fit.plot(x_model,fit4, 'g')
-        ax_fit.scatter(x1,test_func(int(x1),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1,state.test_func(int(x1),state.parvals,header),zorder=100000,c='black')
         
     if header[42]=='1': #ie if gaussian is present
         fit5=gauss_func(x_model, gauss_amp, gauss_centre, sigma)
@@ -809,8 +801,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.plot(x_model,fit12, 'g')
         ax_fit.plot(x_model,fit13, 'g', label='Triple Power Law',linestyle='dotted')
         ax_fit.plot(x_model,fit14, 'g')
-        ax_fit.scatter(x1_tpl,test_func(int(x1_tpl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x2_tpl,test_func(int(x2_tpl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1_tpl,state.test_func(int(x1_tpl),state.parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x2_tpl,state.test_func(int(x2_tpl),state.parvals,header),zorder=100000,c='black')
         
     if header[142]=='1':# ie if the qpl is present
         xlo=[ ((erf(((x_i-x0_qpl)/dx_qpl))+1)/2) if x_i<x1_qpl else 0 for x_i in x_model] #below x1
@@ -827,9 +819,9 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.plot(x_model,fit16, 'g', label='Quadruple Power Law',linestyle='dotted')
         ax_fit.plot(x_model,fit17, 'g')
         ax_fit.plot(x_model,fit18, 'g')
-        ax_fit.scatter(x1_qpl,test_func(int(x1_qpl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x2_qpl,test_func(int(x2_qpl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x3_qpl,test_func(int(x3_qpl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1_qpl,state.test_func(int(x1_qpl),state.parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x2_qpl,state.test_func(int(x2_qpl),state.parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x3_qpl,state.test_func(int(x3_qpl),state.parvals,header),zorder=100000,c='black')
 
     if header[159]=='1':# ie if the 5pl is present
         xlo=[ ((erf(((x_i-x0_5pl)/dx_5pl))+1)/2) if x_i<x1_5pl else 0 for x_i in x_model] #below x1
@@ -849,10 +841,10 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         ax_fit.plot(x_model,fit21, 'g')
         ax_fit.plot(x_model,fit22, 'g')
         ax_fit.plot(x_model,fit23, 'g')
-        ax_fit.scatter(x1_5pl,test_func(int(x1_5pl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x2_5pl,test_func(int(x2_5pl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x3_5pl,test_func(int(x3_5pl),parvals,header),zorder=100000,c='black')
-        ax_fit.scatter(x4_5pl,test_func(int(x4_5pl),parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x1_5pl,state.test_func(int(x1_5pl),state.parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x2_5pl,state.test_func(int(x2_5pl),state.parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x3_5pl,state.test_func(int(x3_5pl),state.parvals,header),zorder=100000,c='black')
+        ax_fit.scatter(x4_5pl,state.test_func(int(x4_5pl),state.parvals,header),zorder=100000,c='black')
         
     ax_fit.set_yscale("log")
     ax_fit.set_xscale("log")
@@ -862,12 +854,12 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     ax_fit.set_xlim(np.nanmin(x_model)-2,np.nanmax(x_model)+20)
     
     #add legend to plot
-    ax_fit.legend(title=f"Reduced Chi sq = {round(redchi,1)}")
+    ax_fit.legend(title=f"Reduced Chi sq = {round(state.redchi,1)}")
 
 
 
     ax_fit.grid()
-    canvas_fit = FigureCanvasTkAgg(fig_fit, master=fit_window) 
+    canvas_fit = FigureCanvasTkAgg(fig_fit, master=state.fit_window) 
     canvas_fit.draw()  
     canvas_fit.get_tk_widget().pack(fill="both",expand=True)
     
@@ -878,21 +870,20 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     
     #create preview button
     fig_save_button=tk.Button(
-    text="Save Plot",  width=25,  height=2,  bg="white",  fg="black",  command=fig_save_hndl,  master=fit_window)
+    text="Save Plot",  width=25,  height=2,  bg="white",  fg="black",  command=fig_save_hndl,  master=state.fit_window)
     fig_save_button.pack(side=tk.BOTTOM) 
     
     #second plot showing the residuals of the fit
     
-    resid_window=tk.Toplevel()
-    resid_window.rowconfigure(0, weight=1)
-    resid_window.columnconfigure(0, weight=1)
+    state.resid_window=tk.Toplevel()
+    state.resid_window.rowconfigure(0, weight=1)
+    state.resid_window.columnconfigure(0, weight=1)
     fig_resids =plt.Figure(figsize=plot_wind_size, dpi=200)
     ax_resids= fig_resids.add_subplot(1, 1, 1)
 
-    global resids
-    resids=resid_calc(pars,x_data_sliced,y_data_sliced,uncert_sliced,header)
+    state.resids=resid_calc(pars,x_data_sliced,y_data_sliced,uncert_sliced,header)
 
-    ax_resids.plot(list(x_data_sliced),resids,marker='o')
+    ax_resids.plot(list(x_data_sliced),state.resids,marker='o')
     ax_resids.set_ylabel('Residual')
     ax_resids.set_xscale('log')
     ax_resids.set_xlabel('Energy (keV)')
@@ -902,10 +893,10 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
      
      
     #fig_resids.savefig(fname=.png',bbox_inches='tight')
-    canvas_resids = FigureCanvasTkAgg(fig_resids, master=resid_window) 
+    canvas_resids = FigureCanvasTkAgg(fig_resids, master=state.resid_window) 
     canvas_resids.draw()  
     canvas_resids.get_tk_widget().pack(fill="both",expand=True)
     
 
 
-    return(parvals,param_uncert_calced,x_data_sliced)
+    return(state.parvals,state.param_uncert_calced,x_data_sliced)

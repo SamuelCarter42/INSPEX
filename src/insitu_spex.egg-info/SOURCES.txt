@@ -16,6 +16,7 @@ src/insitu_spex/par_preview.py
 src/insitu_spex/param_save_load.py
 src/insitu_spex/resamplers.py
 src/insitu_spex/spectrum_gen.py
+src/insitu_spex/state.py
 src/insitu_spex/step_data_load.py
 src/insitu_spex/stereo_data_load.py
 src/insitu_spex/stereo_idl_caller.py

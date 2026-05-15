@@ -100,6 +100,8 @@ def instrument_choice():#function for the instrument choice window
         
     def load_spec_hndl():
         file_obj=tk.filedialog.askopenfile()
+        if file_obj is None:  #user cancelled the dialog
+            return
         if not spec_file_validate(file_obj):#if correctly formatted 
             tk.messagebox.showerror("Invalid Input",'Loaded spectrum must be .txt in correct format, saved via the fitting GUI')
         else:        

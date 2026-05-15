@@ -527,13 +527,13 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
         if best_result is not None:
             params.update(best_result.params)
-            fitter_local = lmfit.Minimizer(
+            state.fitter_local = lmfit.Minimizer(
                 resid_calc,
                 params,
                 fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
                 scale_covar=True)
             
-            state.result = fitter_local.minimize(
+            state.result = state.fitter_local.minimize(
                     method='least_squares',
                     max_nfev=50000,
                     x_scale='jac',
@@ -679,7 +679,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
     else:#if fitter has not generated uncerts, use bayesian posterior method
         print('bayes uncerts use')
-        posterior = fitter_local.minimize( method='emcee',  burn=300, steps=5000, thin=20,
+        posterior = state.fitter_local.minimize( method='emcee',  burn=300, steps=5000, thin=20,
                               is_weighted=True)
         
         #locate MLE value in the chain to get sigmas-not neccessary for operations
@@ -866,6 +866,8 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #add buttton to save figure
     def fig_save_hndl():
         file_obj=tk.filedialog.asksaveasfilename()
+        if not file_obj:  #user cancelled the dialog (returns empty string)
+            return
         fig_fit.savefig(file_obj,bbox_inches='tight')
     
     #create preview button

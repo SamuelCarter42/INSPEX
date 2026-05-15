@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: insitu_spex
-Version: 0.22
+Version: 0.23
 License-File: LICENSE
 Requires-Dist: numpy
 Requires-Dist: pandas

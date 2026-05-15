@@ -21,6 +21,7 @@ resids = None
 fitmin=None
 fitmax=None
 entries = {}
+fitter_local = None
 
 # Model presence flags (which components are active)
 therm_func_pres = None

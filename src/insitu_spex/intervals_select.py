@@ -611,6 +611,8 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
             #add buttton to save figure
             def fig_save_hndl():
                 file_obj=tk.filedialog.asksaveasfilename()
+                if not file_obj:  #user cancelled the dialog (returns empty string)
+                    return
                 fig_tev.savefig(file_obj,bbox_inches='tight')
             
             #create preview button

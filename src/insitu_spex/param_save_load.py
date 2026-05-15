@@ -24,6 +24,8 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
     #open the file select dialogue to choose a save location
     files = [('Text Document','*.txt')]
     file_obj=tk.filedialog.asksaveasfile(filetypes = files, defaultextension=".txt")
+    if file_obj is None:  #user cancelled the dialog
+        return
     #file_obj=open(fileloc,'w')#define name of save file, opens it in write mode
     content=list()#set up empty list of contents
     state.header=f"bpl_pres={bpl_pres}; therm_func_pres={therm_func_pres}; gauss_pres={gauss_pres}; power_pres={power_pres}; kappa_pres={kappa_pres}; bpl_and_therm_pres={bpl_and_therm_pres}; double_therm_func_pres={double_therm_func_pres}; tpl_pres={tpl_pres}; qpl_pres={qpl_pres}; quint_pl_pres={quint_pl_pres};\n"#define state.header. state.header defines which functions have been used to fit the data. ends with newline character
@@ -168,6 +170,8 @@ def param_save(date,inst,spec_type, bpl_pres, therm_func_pres, gauss_pres,power_
     
 def param_load(date,inst,spec_type): #function to load data from the file
     file_obj=tk.filedialog.askopenfile()
+    if file_obj is None:  #user cancelled the dialog
+        return None, None
     content=[x for x in file_obj]#reads file content into a list line by line
        
     file_obj.close()#close file

@@ -2087,6 +2087,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
         spec_frame=pd.DataFrame(spec_dict)
         files = [('Text Document','*.txt')]
         file_obj=tk.filedialog.asksaveasfile(filetypes = files, defaultextension=".txt")
+        if file_obj is None:  #user cancelled the dialog
+            return
         spec_frame.to_csv(file_obj)
 
     
@@ -2342,6 +2344,8 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             spec_frame=pd.DataFrame(spec_dict)
             files = [('Text Document','*.txt')]
             file_obj=tk.filedialog.asksaveasfile(filetypes = files, defaultextension=".txt")
+            if file_obj is None:  #user cancelled the dialog
+                return
             spec_frame.to_csv(file_obj)
 
             

@@ -16,6 +16,7 @@ import pandas as pd #module for dataframe and time series handling
 import scipy #for reading in idl saves and other various functions
 import subprocess #for running IDL codes
 from . import stereo_idl_caller#for calling the IDL code required to calibrate the STEREO data and convert it to flux
+from . import state  #shared cross-module state
 import re#for handling regexs to validate inputs
 import random as rn#for random number and choice utility, particularly in uncertainty estimation
 from tqdm import tqdm #for tracking progress of long iterables
@@ -109,7 +110,7 @@ def resid_calc(pars,x_data,y_data,uncert,header): #defines the calculator for re
     parvals=pars.valuesdict() #converts the parameters to a dictionary form
 
     #calculate values
-    calcd_vals=test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
+    calcd_vals=state.test_func(x_data,parvals,header)#uses the defined test function to get the calculated values
     #calc resids
     resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)*1) #calculates the residuals
 
@@ -128,8 +129,7 @@ def fit_curve(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,
           uncert_sliced.append(uncert[pos])
 
     #build test function according to the user set options
-    global test_func
-    def test_func(x,parvals,header): # this function is the one we are trying to fit to the data
+    def _test_func(x,parvals,header): # this function is the one we are trying to fit to the data
         
     #if x data list, create y data as list too. else if x is array, use array for y
         if type(x)==list:
@@ -190,6 +190,7 @@ def fit_curve(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,
             y+=bpl_and_therm_func(x,amp_c,T_c,alpha_c,x0_c,x1_c,B_c,B2_c)
 
         return y
+    state.test_func = _test_func  #store in shared state for other modules
     
     #define params with bounds and initial values
     params=lmfit.Parameters()

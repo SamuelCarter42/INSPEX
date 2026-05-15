@@ -3,7 +3,7 @@ requires=["setuptools >= 77.0.3"]
 build-backend="setuptools.build_meta"
 
 [project]
-version="0.6"
+version="0.21"
 name="insitu_spex"
 dependencies = [
     "numpy",
@@ -20,7 +20,6 @@ dependencies = [
     "astropy",
     "spacepy",
 ]
+
 [project.scripts]
-inspex="INSPEX:fitting_gui"
-instrument_choice="INSPEX:instrument_choice"
-time_rng_select="INSPEX:time_rng_select"
+inspex="insitu_spex:instrument_choice"

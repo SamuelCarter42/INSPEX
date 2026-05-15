@@ -5,6 +5,7 @@ from .eas_data_load import EAS_data_load
 from .interval_spectrum_gen  import interval_spec_gen 
 from .fitting_and_resids import fitting
 from .fitting_gui import fitting_gui
+from . import state  #shared cross-module state
 
 
 import numpy as np
@@ -471,9 +472,6 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
     
     frame_loop_opts.pack(side=tk.LEFT)
     def TS_Select_btn_hndl():
-        global param_uncert_calced
-        global parvals_new
-        global parvals
         
         time_range_s=max(time_series_time)-min(time_series_time)
         bg_mintime=min(time_series_time)+(sliders[0].get()*time_range_s)
@@ -542,43 +540,40 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         inters_window.destroy()
         plt.close(fig_TS)
         
-        global fit_window
-        global preview_window
         fitted_params=np.empty([len(spectra),2],dtype=dict)
         if manl_loop: #if user wishes to do all fits mannually
             for count,i in enumerate(spectra):#fit all the spectra
                 spec=i[0]
                 spec_uncert=i[1]
                 fitting_gui(time_series_energies, spec, spec_uncert, intervals[count], inst, spec_type)
-                fitted_params[count,0]=parvals_new
-                fitted_params[count,1]=param_uncert_calced
+                fitted_params[count,0]=state.parvals
+                fitted_params[count,1]=state.param_uncert_calced
                 
 
         else: #auto loop intervals after first one
             fitting_gui(time_series_energies, spectra[0][0], spectra[0][1], intervals[0], inst, spec_type)
-            fitted_params[0,0]=parvals
-            fitted_params[0,1]=param_uncert_calced
-            output=parvals
+            fitted_params[0,0]=state.parvals
+            fitted_params[0,1]=state.param_uncert_calced
+            output=state.parvals
             for count,i in enumerate(spectra[1:]):#fit all the spectra
                 spec=i[0]
                 spec_uncert=i[1]
-                global x_data_E_sliced
-                parvals,param_uncert_calced,x_data_E_sliced=fitting(header,output,vary,minval,maxval,time_series_energies,spec,spec_uncert,fitmin,fitmax)
-                #fit_window.quit()
-                #preview_window.quit()
-                fitted_params[count+1,0]=parvals
-                fitted_params[count+1,1]=param_uncert_calced
-                output=parvals
+                state.parvals,state.param_uncert_calced,x_data_E_sliced=fitting(state.header,output,state.vary,state.minval,state.maxval,time_series_energies,spec,spec_uncert,state.fitmin,state.fitmax)
+                #state.fit_window.quit()
+                #state.preview_window.quit()
+                fitted_params[count+1,0]=state.parvals
+                fitted_params[count+1,1]=state.param_uncert_calced
+                output=state.parvals
 
-        if fit_window is not None:
+        if state.fit_window is not None:
             #close any open figues
-            #fit_window.destroy()
-            fit_window=None
+            #state.fit_window.destroy()
+            state.fit_window=None
             
-        if preview_window is not None:
+        if state.preview_window is not None:
             #close any open figues
-            #preview_window.destroy()
-            preview_window=None
+            #state.preview_window.destroy()
+            state.preview_window=None
         
         
         #allow user to save the spectra and the fits
@@ -645,7 +640,7 @@ def intervals_select(inst,start_time,end_time,spec_type_sel,resample_dur):
         
         # Iterate over the button definitions
         for index, buttons in button_definitions.items():
-            if header[index] == '1':  # Check if the corresponding function is present
+            if state.header[index] == '1':  # Check if the corresponding function is present
                 for button_text in buttons:
                     create_button(button_text, button_text, invl_res_display_opts)
         

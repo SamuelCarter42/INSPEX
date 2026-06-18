@@ -5,7 +5,7 @@ import subprocess
 
 def run_idl_command(idl_command):
 
-    idl_executable =idl_locator.idl_locator() 
+    idl_executable =idl_locator()
     # Form the command to execute IDL
     with subprocess.Popen(idl_executable, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
         stdout, stderr = process.communicate(idl_command)

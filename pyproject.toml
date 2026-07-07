@@ -3,7 +3,7 @@ requires=["setuptools >= 77.0.3"]
 build-backend="setuptools.build_meta"
 
 [project]
-version="0.23"
+version="0.24"
 name="insitu_spex"
 dependencies = [
     "numpy",
@@ -16,7 +16,6 @@ dependencies = [
     "tqdm",
     "solo-epd-loader",
     "sunpy",
-    "sunpy-soar",
     "astropy",
     "spacepy",
 ]

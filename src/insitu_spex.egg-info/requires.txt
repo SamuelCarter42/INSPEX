@@ -8,6 +8,5 @@ numdifftools
 tqdm
 solo-epd-loader
 sunpy
-sunpy-soar
 astropy
 spacepy

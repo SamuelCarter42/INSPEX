@@ -16,7 +16,6 @@ import sunpy.data.sample
 import sunpy.map
 from sunpy.coordinates import frames, sun
 
-import sunpy_soar
 import datetime as dt
 import os
 import pandas as pd

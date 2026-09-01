@@ -12,7 +12,7 @@ import numpy as np #general mathematical operations
 from scipy.special import erf #imports an erf function for use in some of the fitting operations
 from matplotlib import pyplot as plt #general plotting operations
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg)#allows plotting to a tkinter window
-
+from scipy.stats.qmc import LatinHypercube
 import datetime as dt#handles general datetime operations
 import pandas as pd #module for dataframe and time series handling
 import scipy #for reading in idl saves and other various functions
@@ -201,8 +201,34 @@ def neg_max_like(pars,x_data,y_data,uncert,header):#the negative maximum log lik
 
     state.resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)) #calculates the residuals
     n=len(x_data)
-    nll = 0.5 * (n * np.log(2*np.pi) + np.sum(np.log(uncert**2)) + np.sum(resids**2))
+    nll = 0.5 * (n * np.log(2*np.pi) + np.sum(np.log(uncert**2)) + np.sum(state.resids**2))
     return nll
+
+
+def build_seeded_population(params, free_names, popsize, seed, guess_vec):#seeding populations from initial guess for use with DE
+    n_free = len(free_names)
+    pop_size_total = popsize * n_free
+    sampler = LatinHypercube(d=n_free, seed=seed)
+    unit_samples = sampler.random(n=pop_size_total)
+
+    scaled_pop = np.zeros((pop_size_total, n_free))
+    for i, name in enumerate(free_names):
+        lo, hi = params[name].min, params[name].max
+        # treat a lower bound of 0 (or anything <=0) as "12 orders below hi"
+        floor = hi * 1e-12 if hi > 0 else lo
+        floor = max(lo, floor)
+        span_orders = (hi / floor) if floor > 0 else 1
+
+        if lo >= 0 and floor > 0 and span_orders > 100:
+            # wide, non-negative range -> sample log-uniformly
+            log_lo, log_hi = np.log10(floor), np.log10(hi)
+            scaled_pop[:, i] = 10 ** (log_lo + unit_samples[:, i] * (log_hi - log_lo))
+        else:
+            # narrow range, or genuinely spans negative values (e.g. spectral index) -> linear
+            scaled_pop[:, i] = lo + unit_samples[:, i] * (hi - lo)
+
+    scaled_pop[0] = guess_vec  # guarantee the known-good point is present
+    return scaled_pop
 
 
 def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,spec_type): #defines our fitting process
@@ -504,17 +530,54 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     def run_fit():
         best_result = None
         lowest_chisq = float("inf")
-        n_seeds = 10
+        n_seeds = 5
+        
 
+        
+        #breakpoint()
         for seed in range(n_seeds):
             try:
+                
+                #initialise param space so can never do worse than initial guess
+                free_names = [name for name, p in params.items() if p.vary]
+                bounds = [(params[name].min, params[name].max) for name in free_names]
+                n_free = len(free_names)
+                popsize = 20
+                pop_size_total = popsize * n_free
+                
+                # fill most of the population with Latin hypercube samples across bounds
+                sampler = LatinHypercube(d=n_free, seed=seed)
+                unit_samples = sampler.random(n=pop_size_total)
+                scaled_pop = np.array([
+                    lo + unit_samples[:, i] * (hi - lo) for i, (lo, hi) in enumerate(bounds)
+                ]).T
+                
+                # overwrite the first row with actual initial guess
+                guess_vec = np.array([params[name].value for name in free_names])
+                scaled_pop[0] = guess_vec                
+                
+                desired_generations =1000
+                popsize=20
                 np.random.seed(seed)
                 random.seed(seed)
+                free_names = [name for name, p in params.items() if p.vary]
+                n_free = len(free_names)
+                guess_vec = np.array([params[name].value for name in free_names])
+                
+                scaled_pop = build_seeded_population(params, free_names, popsize, seed, guess_vec)
+                
                 trial = fitter.minimize(
-                    method='basinhopping',
-                    stepsize=0.00001,
+                    method='differential_evolution',
+                    strategy='best2bin',
+                    max_nfev=popsize * (n_free + 1) * desired_generations,
+                    popsize=popsize,
+                    init=scaled_pop,          # <-- the missing piece
+                    tol=1e-8,
+                    mutation=(0.5, 1.5),
+                    recombination=0.7,
                     seed=seed,
-                    minimizer_kwargs={'method': 'TNC', 'options': {'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}}
+                    polish=False,
+                    updating='immediate',
                 )
                 if trial.chisqr < lowest_chisq:
                     best_result = trial
@@ -532,13 +595,17 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
                 params,
                 fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
                 scale_covar=True)
-            
-            state.result = state.fitter_local.minimize(
-                    method='least_squares',
+            try:
+                state.result = state.fitter_local.minimize(
+                    method='nelder',
                     max_nfev=50000,
-                    x_scale='jac',
-                    ftol=1e-9, xtol=1e-9, gtol=1e-9)
-            
+                    #x_scale='jac',
+                    #ftol=1e-9, xtol=1e-9, gtol=1e-9
+                    )
+                #nelder is the most resilient to nans for final stage
+            except Exception as e:
+                    print(f"Local failed: {e}")
+                    #breakpoint()
         progress_win.destroy()  # Closes the window, allows wait_window to continue
         
 
@@ -668,7 +735,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #calc reduced chi sq
     dof=len(y_data_sliced)-len(state.parvals)#degrees of freedom
     state.redchi=chi_sq/dof
-
+    
 
     #breakpoint()
     #return the parameter uncertainties as well
@@ -679,9 +746,19 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
     else:#if fitter has not generated uncerts, use bayesian posterior method
         print('bayes uncerts use')
-        posterior = state.fitter_local.minimize( method='emcee',  burn=300, steps=5000, thin=20,
-                              is_weighted=True)
-        
+        state.fitter_local = lmfit.Minimizer(
+            resid_calc,
+            params,
+            fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
+            scale_covar=True,nan_policy='omit')
+        try:#try-except wrap in case emcee makes inf/nan
+            posterior = state.fitter_local.minimize( method='emcee',params= state.result.params, burn=300, steps=5000, thin=20,
+                              is_weighted=True,progress=True)
+        except Exception as e:
+            print(f"Bayes uncert failed: {e}")
+            #breakpoint()
+                    
+                    
         #locate MLE value in the chain to get sigmas-not neccessary for operations
         highest_prob = np.argmax(posterior.lnprob)
         hp_loc = np.unravel_index(highest_prob, posterior.lnprob.shape)

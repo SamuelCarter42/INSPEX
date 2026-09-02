@@ -568,7 +568,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     def run_fit():
         best_params = None
         lowest_chisq = float("inf")
-        n_seeds = 5
+        n_seeds = 3
     
         free_names = [name for name, p in params.items() if p.vary]#pull names of free params
         n_free = len(free_names)#total no. free params
@@ -576,7 +576,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
         guess_vec = np.array([params[name].value for name in free_names])#initial guess
     
         popsize = 20
-        desired_generations = 1000
+        desired_generations = 750
         report_chisq("initial guess", params, x_data_sliced, y_data_sliced, uncert_sliced, header)
         for seed in range(n_seeds):
             try:

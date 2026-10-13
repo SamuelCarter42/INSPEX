@@ -212,10 +212,12 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     eas_el_r=np.round(elevs_raw*rad,5)
     eas_az_r=np.round(azs_raw*rad,5)
     
-    # Create boolean mask
-    el_mask=np.isin(eas_el_r,Els)
-    az_mask=np.isin(eas_az_r,Azs)
+
     #breakpoint()
+    el_idx = np.flatnonzero(np.isin(eas_el_r, Els))
+    el_sl = slice(el_idx.min(), el_idx.max() + 1)
+    az_sl = slice(np.searchsorted(eas_az_r, Azs.min(), side="left"),
+                  np.searchsorted(eas_az_r, Azs.max(), side="right"))
     #%% remove all the unwanted bits
     # Define the range of desired elevations and azimuths (e.g., min and max)
     
@@ -259,28 +261,11 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     flux_files = np.transpose(flux_files, (0, 1, 3, 2))
     #print('EAS1 flux:')
     #print((flux_files2==0).any())    
-    
-        
+
     #breakpoint()
-    #try:
-    for tind, this_t in tqdm(enumerate(flux_files)):
-       
-       
-       
-       # Apply the mask across all energy bins for the second set
-       combo_files[tind][np.outer(~el_mask, ~az_mask)] = 0 #tilde is not
-       flux_files[tind][np.outer(~el_mask, ~az_mask)] = 0
-        
-    #except:
-    #breakpoint()
-    no_pix=np.count_nonzero(el_mask)*np.count_nonzero(az_mask)
-    # Sum over azimuth (axis 2) and elevation (axis 1) for the second set
-    curve = np.sum(np.sum(combo_files, axis=2), axis=1)/no_pix
-    flux_curve = np.sum(np.sum(flux_files, axis=2), axis=1)/no_pix
+    count_curve_raw=np.nanmean(combo_files[:,el_sl,az_sl,:], axis=(1,2))
+    flux_curve_raw=np.nanmean(flux_files[:,el_sl,az_sl,:], axis=(1,2))
     
-    
-    count_curve_raw=np.array(curve)
-    flux_curve_raw=np.array(flux_curve)
     
     #print(count_curve_raw.shape)
     

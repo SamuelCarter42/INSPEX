@@ -215,7 +215,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     # Create boolean mask
     el_mask=np.isin(eas_el_r,Els)
     az_mask=np.isin(eas_az_r,Azs)
-    
+    #breakpoint()
     #%% remove all the unwanted bits
     # Define the range of desired elevations and azimuths (e.g., min and max)
     
@@ -268,11 +268,11 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
        
        
        # Apply the mask across all energy bins for the second set
-       combo_files[tind, ~el_mask][:, ~az_mask, :] = 0 #tilde is not
-       flux_files[tind, ~el_mask][:, ~az_mask, :] = 0
+       combo_files[tind][np.outer(~el_mask, ~az_mask)] = 0 #tilde is not
+       flux_files[tind][np.outer(~el_mask, ~az_mask)] = 0
         
     #except:
-        #breakpoint()
+    #breakpoint()
     no_pix=np.count_nonzero(el_mask)*np.count_nonzero(az_mask)
     # Sum over azimuth (axis 2) and elevation (axis 1) for the second set
     curve = np.sum(np.sum(combo_files, axis=2), axis=1)/no_pix

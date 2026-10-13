@@ -151,7 +151,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.minval['T']=0
             state.minval['alpha']=0
             
-            state.maxval['amp']=None
+            state.maxval['amp']=1e10
             state.maxval['T']=1e8
             state.maxval['alpha']=5    
             
@@ -209,9 +209,9 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             
 
             state.maxval['x1']=50
-            state.maxval['A']=None
+            state.maxval['A']=1e10
             state.maxval['B']=0
-            state.maxval['A2']=None
+            state.maxval['A2']=1e10
             state.maxval['B2']=0            
             state.maxval['x0_bpl']=10
             state.maxval['dx_bpl']=1
@@ -277,12 +277,12 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.vary['sigma']=True
             
             state.minval['gauss_amp']=0
-            state.minval['gauss_centre']=None
+            state.minval['gauss_centre']=0
             state.minval['sigma']=0
             
-            state.maxval['gauss_amp']=None
-            state.maxval['gauss_centre']=None
-            state.maxval['sigma']=None   
+            state.maxval['gauss_amp']=1e10
+            state.maxval['gauss_centre']=150
+            state.maxval['sigma']=3   
             
             global frame_gauss#defining gui section to handle gaussian param options
             frame_gauss=tk.Frame(master=frame_params)
@@ -323,12 +323,12 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.vary['dx_sing']=True
             
             state.minval['A_sing']=0
-            state.minval['B_sing']=None
+            state.minval['B_sing']=-10
             state.minval['x0_sing']=-1
             state.minval['dx_sing']=0.01
 
             
-            state.maxval['A_sing']=None
+            state.maxval['A_sing']=1e10
             state.maxval['B_sing']=0
             state.maxval['x0_sing']=10
             state.maxval['dx_sing']=1
@@ -383,14 +383,14 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.minval['A_k']=1e-22
             state.minval['T_k']=1e6
             state.minval['m_i']=0
-            state.minval['n_i']=None
+            state.minval['n_i']=0
             state.minval['kappa']=(3/2)+0.0001#must be greater than 3/2
             
             
             state.maxval['A_k']=1
-            state.maxval['T_k']=None
-            state.maxval['m_i']=None
-            state.maxval['n_i']=None
+            state.maxval['T_k']=1e10
+            state.maxval['m_i']=1
+            state.maxval['n_i']=1e10
             state.maxval['kappa']=1000
             
             global frame_kappa
@@ -450,7 +450,7 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.minval['B2_c']=-10
          
             
-            state.maxval['amp_c']=None
+            state.maxval['amp_c']=1e10
             state.maxval['T_c']=1e8
             state.maxval['alpha_c']=5    
             state.maxval['x0_c']=25
@@ -519,10 +519,10 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.minval['alpha_d_2']=0
             
             
-            state.maxval['amp_d_1']=None
+            state.maxval['amp_d_1']=1e10
             state.maxval['T_d_1']=1e8
             state.maxval['alpha_d_1']=5    
-            state.maxval['amp_d_2']=None
+            state.maxval['amp_d_2']=1e10
             state.maxval['T_d_2']=1e8
             state.maxval['alpha_d_2']=5   
             
@@ -591,11 +591,11 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 
             state.maxval['x1_tpl']=50
             state.maxval['x2_tpl']=50
-            state.maxval['A_tpl']=None
+            state.maxval['A_tpl']=1e10
             state.maxval['B_tpl']=0
-            state.maxval['A2_tpl']=None
+            state.maxval['A2_tpl']=1e10
             state.maxval['B2_tpl']=0            
-            state.maxval['A3_tpl']=None
+            state.maxval['A3_tpl']=1e10
             state.maxval['B3_tpl']=0           
             state.maxval['x0_tpl']=10
             state.maxval['dx_tpl']=1
@@ -700,13 +700,13 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.maxval['x1_qpl']=10
             state.maxval['x2_qpl']=20
             state.maxval['x3_qpl']=50
-            state.maxval['A_qpl']=None
+            state.maxval['A_qpl']=1e10
             state.maxval['B_qpl']=0
-            state.maxval['A2_qpl']=None
+            state.maxval['A2_qpl']=1e10
             state.maxval['B2_qpl']=0            
-            state.maxval['A3_qpl']=None
+            state.maxval['A3_qpl']=1e10
             state.maxval['B3_qpl']=0           
-            state.maxval['A4_qpl']=None
+            state.maxval['A4_qpl']=1e10
             state.maxval['B4_qpl']=0           
             state.maxval['x0_qpl']=10
             state.maxval['dx_qpl']=1
@@ -831,15 +831,15 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
             state.maxval['x2_5pl']=20
             state.maxval['x3_5pl']=50
             state.maxval['x4_5pl']=50
-            state.maxval['A_5pl']=None
+            state.maxval['A_5pl']=1e10
             state.maxval['B_5pl']=0
-            state.maxval['A2_5pl']=None
+            state.maxval['A2_5pl']=1e10
             state.maxval['B2_5pl']=0            
-            state.maxval['A3_5pl']=None
+            state.maxval['A3_5pl']=1e10
             state.maxval['B3_5pl']=0           
-            state.maxval['A4_5pl']=None
+            state.maxval['A4_5pl']=1e10
             state.maxval['B4_5pl']=0     
-            state.maxval['A5_5pl']=None
+            state.maxval['A5_5pl']=1e10
             state.maxval['B5_5pl']=0 
             state.maxval['x0_5pl']=10
             state.maxval['dx_5pl']=1
@@ -1011,6 +1011,11 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
     
     def validate_minmaxval(min_val,max_val): #max must be float greater than state.minval or none
         if (type(min_val)==float and type(max_val)==float and max_val>min_val) or (min_val==None and type(max_val)==float) or (type(min_val)==float and max_val==None) or (min_val==None and max_val==None):
+            return True
+        return False
+    
+    def validate_finite(min_val,max_val): #max must be float greater than state.minval or none
+        if (type(min_val)==float and type(max_val)==float):
             return True
         return False
 
@@ -1414,6 +1419,14 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                     max_val=state.maxval[ind]
                     valid = validate_minmaxval(min_val,max_val)
                     validity[ind]=(valid)
+                    
+                    #ensure finit limits
+                    finite=dict()
+                for ind in state.minval.keys():
+                    min_val=state.minval[ind]
+                    max_val=state.maxval[ind]
+                    finiteness = validate_finite(min_val,max_val)
+                    finite[ind]=(finiteness)
                 if False in validity:#show where error is !!!!!
                     false_keys=list()            
                     for key, value in validity.items():
@@ -1435,6 +1448,16 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
                                 false_keys.append(key)
                         
                         tk.messagebox.showerror("Invalid Input",f"Parameter initial values should be floats between their max and min values for parameter(s) {false_keys}")
+                    
+                    elif False in finite:
+                        inf_keys=list()            
+                        for key, value in finite.items():
+                            if value is False:
+                                inf_keys.append(key)
+                        
+                        tk.messagebox.showerror("Invalid Input",f"Parameter limits should be finite value floats for parameter(s) {inf_keys}")
+                    
+                    
                     else:
 #%%fit outputs                        #perform the fitting function defined above to obtain the minimised parameters
                         
@@ -2107,207 +2130,106 @@ def build_fit_window(x_data, y_data, uncert, date, inst, spec_type):
 #%%load savehandling
     def save_btn_hndl():#function to handle save button
         param_save(date,inst,spec_type, state.bpl_pres, state.therm_func_pres, state.gauss_pres, state.power_pres, state.kappa_pres,state.bpl_and_therm_pres, state.double_therm_func_pres, state.tpl_pres, state.qpl_pres,state.quint_pl_pres,state.redchi)#calls previously defined save function
+    #when loading, must adjust bounds to fit loaded pars
+
+    def widen_bounds_for_loaded_value(name, loaded_val, margin_frac=0.2, abs_floor=1e-6):
+        """
+        Ensure a value loaded from a previous fit sits safely INSIDE the current
+        min/max bounds (not on the edge), widening whichever bound needs it.
+        Bounds are only ever widened, never narrowed, and both state.minval/maxval
+        and the visible entry boxes are updated so the change is visible and the
+        user can override it if they don't want it.
+        """
+        cur_min = state.minval[name]
+        cur_max = state.maxval[name]
+        pad = max(abs(loaded_val) * margin_frac, abs_floor)
     
+        new_min = min(cur_min, loaded_val - pad)
+        new_max = max(cur_max, loaded_val + pad)
+    
+        if new_min != cur_min or new_max != cur_max:
+            state.minval[name] = new_min
+            state.maxval[name] = new_max
+    
+            min_entry = state.entries[f"minval_{name}_entry"]
+            min_entry.delete(0, tk.END)
+            min_entry.insert(0, str(new_min))
+    
+            max_entry = state.entries[f"maxval_{name}_entry"]
+            max_entry.delete(0, tk.END)
+            max_entry.insert(0, str(new_max))
+    
+            print(f"Widened bounds for '{name}' to [{new_min:.4g}, {new_max:.4g}] "
+                  f"to fit loaded value {loaded_val:.4g}")
+
+
+    #loading each param
+    def load_param(name, value):
+        """Populate the init entry for `name`, widening bounds if needed so the
+        loaded value can't be silently clamped."""
+        entry = state.entries[f"init_{name}_entry"]
+        entry.delete(0, tk.END)
+        entry.insert(0, value)
+        widen_bounds_for_loaded_value(name, value)
 
     def load_btn_hndl():#function to handle load button
         state.header,parvals_ld=param_load(date,inst,spec_type)
         
         
-        if state.header[9]=='1':# ie if the bpl is present in the save, add the function with the saved param values
-            
-            add_bpl()
+        if state.header[9] == '1':  # bpl
+           add_bpl()
+           for name in ["x1", "A", "B", "A2", "B2", "x0_bpl", "dx_bpl"]:
+               load_param(name, parvals_ld[name])
     
-            state.entries["init_x1_entry"].delete(0, tk.END)
-            state.entries["init_x1_entry"].insert(0,parvals_ld["x1"])
-            state.entries["init_A_entry"].delete(0, tk.END)
-            state.entries["init_A_entry"].insert(0,parvals_ld["A"])
-            state.entries["init_B_entry"].delete(0, tk.END)
-            state.entries["init_B_entry"].insert(0,parvals_ld["B"])
-            state.entries["init_A2_entry"].delete(0, tk.END)
-            state.entries["init_A2_entry"].insert(0,parvals_ld["A2"])
-            state.entries["init_B2_entry"].delete(0, tk.END)
-            state.entries["init_B2_entry"].insert(0,parvals_ld["B2"])
-            state.entries["init_x0_bpl_entry"].delete(0, tk.END)
-            state.entries["init_x0_bpl_entry"].insert(0,parvals_ld["x0_bpl"])
-            state.entries["init_dx_bpl_entry"].delete(0, tk.END)
-            state.entries["init_dx_bpl_entry"].insert(0,parvals_ld["dx_bpl"])
-
-            
-        if state.header[28]=='1':#ie if the therm func is present in the save, add the function with the saved param values
-           
-            add_therm()
-            
-            state.entries["init_amp_entry"].delete(0, tk.END)
-            state.entries["init_amp_entry"].insert(0,parvals_ld["amp"])
-            state.entries["init_T_entry"].delete(0, tk.END)
-            state.entries["init_T_entry"].insert(0,parvals_ld["T"])
-            state.entries["init_alpha_entry"].delete(0, tk.END)
-            state.entries["init_alpha_entry"].insert(0,parvals_ld["alpha"])
-        
-        if state.header[42]=='1': #ie if gaussian is present in the save, add the function with the saved param values
-            add_gauss()
-            
-            state.entries["init_gauss_amp_entry"].delete(0, tk.END)
-            state.entries["init_gauss_amp_entry"].insert(0,parvals_ld["gauss_amp"])
-            state.entries["init_gauss_centre_entry"].delete(0, tk.END)
-            state.entries["init_gauss_centre_entry"].insert(0,parvals_ld["gauss_centre"])
-            state.entries["init_sigma_entry"].delete(0, tk.END)
-            state.entries["init_sigma_entry"].insert(0,parvals_ld["sigma"]) 
-        
-        if state.header[56]=='1': #ie if the single power law is present in the save, add the function with the saved param values
-            add_power()
-            state.entries["init_A_sing_entry"].delete(0, tk.END)
-            state.entries["init_A_sing_entry"].insert(0,parvals_ld["A_sing"])
-            state.entries["init_B_sing_entry"].delete(0, tk.END)
-            state.entries["init_B_sing_entry"].insert(0,parvals_ld["B_sing"])
-            state.entries["init_x0_sing_entry"].delete(0, tk.END)
-            state.entries["init_x0_sing_entry"].insert(0,parvals_ld["x0_sing"])
-            state.entries["init_dx_sing_entry"].delete(0, tk.END)
-            state.entries["init_dx_sing_entry"].insert(0,parvals_ld["dx_sing"])
-            
-        if state.header[70]=='1':#ie if the kappa function is present
-            add_kappa()
-
-            state.entries["init_A_k_entry"].delete(0, tk.END)
-            state.entries["init_A_k_entry"].insert(0,parvals_ld["A_k"])
-            state.entries["init_T_k_entry"].delete(0, tk.END)
-            state.entries["init_T_k_entry"].insert(0,parvals_ld["T_k"])
-            state.entries["init_m_i_entry"].delete(0, tk.END)
-            state.entries["init_m_i_entry"].insert(0,parvals_ld["m_i"])
-            state.entries["init_n_i_entry"].delete(0, tk.END)
-            state.entries["init_n_i_entry"].insert(0,parvals_ld["n_i"])
-            state.entries["init_kappa_entry"].delete(0, tk.END)
-            state.entries["init_kappa_entry"].insert(0,parvals_ld["kappa"])
-                                  
-        if state.header[92]=='1':
-            add_bpl_and_therm()
-            state.entries["init_amp_c_entry"].delete(0, tk.END)
-            state.entries["init_amp_c_entry"].insert(0,parvals_ld["amp_c"])
-            state.entries["init_T_c_entry"].delete(0, tk.END)
-            state.entries["init_T_c_entry"].insert(0,parvals_ld["T_c"])
-            state.entries["init_alpha_c_entry"].delete(0, tk.END)
-            state.entries["init_alpha_c_entry"].insert(0,parvals_ld["alpha_c"])
-            state.entries["init_x0_c_entry"].delete(0, tk.END)
-            state.entries["init_x0_c_entry"].insert(0,parvals_ld["x0_c"])
-            state.entries["init_x1_c_entry"].delete(0, tk.END)
-            state.entries["init_x1_c_entry"].insert(0,parvals_ld["x1_c"])
-            state.entries["init_B_c_entry"].delete(0, tk.END)
-            state.entries["init_B_c_entry"].insert(0,parvals_ld["B_c"])
-            state.entries["init_B2_c_entry"].delete(0, tk.END)
-            state.entries["init_B2_c_entry"].insert(0,parvals_ld["B2_c"])
-            
-        if state.header[118]=='1':
-            add_double_therm()
-            
-            state.entries["init_amp_d_1_entry"].delete(0, tk.END)
-            state.entries["init_amp_d_1_entry"].insert(0,parvals_ld["amp_d_1"])
-            state.entries["init_T_d_1_entry"].delete(0, tk.END)
-            state.entries["init_T_d_1_entry"].insert(0,parvals_ld["T_d_1"])
-            state.entries["init_alpha_d_1_entry"].delete(0, tk.END)
-            state.entries["init_alpha_d_1_entry"].insert(0,parvals_ld["alpha_d_1"])
-            state.entries["init_amp_d_2_entry"].delete(0, tk.END)
-            state.entries["init_amp_d_2_entry"].insert(0,parvals_ld["amp_d_2"])
-            state.entries["init_T_d_2_entry"].delete(0, tk.END)
-            state.entries["init_T_d_2_entry"].insert(0,parvals_ld["T_d_2"])
-            state.entries["init_alpha_d_2_entry"].delete(0, tk.END)
-            state.entries["init_alpha_d_2_entry"].insert(0,parvals_ld["alpha_d_2"])
-                                  
-            
-            
-            
-        if state.header[130]=='1':# ie if the tpl is present in the save, add the function with the saved param values
-            
-            add_tpl()
+        if state.header[28] == '1':  # therm
+           add_therm()
+           for name in ["amp", "T", "alpha"]:
+               load_param(name, parvals_ld[name])
     
-            state.entries["init_x1_tpl_entry"].delete(0, tk.END)
-            state.entries["init_x1_tpl_entry"].insert(0,parvals_ld["x1_tpl"])
-            state.entries["init_x2_tpl_entry"].delete(0, tk.END)
-            state.entries["init_x2_tpl_entry"].insert(0,parvals_ld["x2_tpl"])
-            state.entries["init_A_tpl_entry"].delete(0, tk.END)
-            state.entries["init_A_tpl_entry"].insert(0,parvals_ld["A_tpl"])
-            state.entries["init_B_tpl_entry"].delete(0, tk.END)
-            state.entries["init_B_tpl_entry"].insert(0,parvals_ld["B_tpl"])
-            state.entries["init_A2_tpl_entry"].delete(0, tk.END)
-            state.entries["init_A2_tpl_entry"].insert(0,parvals_ld["A2_tpl"])
-            state.entries["init_B2_tpl_entry"].delete(0, tk.END)
-            state.entries["init_B2_tpl_entry"].insert(0,parvals_ld["B2_tpl"])
-            state.entries["init_A3_tpl_entry"].delete(0, tk.END)
-            state.entries["init_A3_tpl_entry"].insert(0,parvals_ld["A3_tpl"])
-            state.entries["init_B3_tpl_entry"].delete(0, tk.END)
-            state.entries["init_B3_tpl_entry"].insert(0,parvals_ld["B3_tpl"])
-            state.entries["init_x0_tpl_entry"].delete(0, tk.END)
-            state.entries["init_x0_tpl_entry"].insert(0,parvals_ld["x0_tpl"])
-            state.entries["init_dx_tpl_entry"].delete(0, tk.END)
-            state.entries["init_dx_tpl_entry"].insert(0,parvals_ld["dx_tpl"])
-            
-        if state.header[142]=='1':# ie if the qpl is present in the save, add the function with the saved param values
-            
-            add_qpl()
+        if state.header[42] == '1':  # gauss
+           add_gauss()
+           for name in ["gauss_amp", "gauss_centre", "sigma"]:
+               load_param(name, parvals_ld[name])
     
-            state.entries["init_x1_qpl_entry"].delete(0, tk.END)
-            state.entries["init_x1_qpl_entry"].insert(0,parvals_ld["x1_qpl"])
-            state.entries["init_x2_qpl_entry"].delete(0, tk.END)
-            state.entries["init_x2_qpl_entry"].insert(0,parvals_ld["x2_qpl"])
-            state.entries["init_x3_qpl_entry"].delete(0, tk.END)
-            state.entries["init_x3_qpl_entry"].insert(0,parvals_ld["x3_qpl"])
-            state.entries["init_A_qpl_entry"].delete(0, tk.END)
-            state.entries["init_A_qpl_entry"].insert(0,parvals_ld["A_qpl"])
-            state.entries["init_B_qpl_entry"].delete(0, tk.END)
-            state.entries["init_B_qpl_entry"].insert(0,parvals_ld["B_qpl"])
-            state.entries["init_A2_qpl_entry"].delete(0, tk.END)
-            state.entries["init_A2_qpl_entry"].insert(0,parvals_ld["A2_qpl"])
-            state.entries["init_B2_qpl_entry"].delete(0, tk.END)
-            state.entries["init_B2_qpl_entry"].insert(0,parvals_ld["B2_qpl"])
-            state.entries["init_A3_qpl_entry"].delete(0, tk.END)
-            state.entries["init_A3_qpl_entry"].insert(0,parvals_ld["A3_qpl"])
-            state.entries["init_B3_qpl_entry"].delete(0, tk.END)
-            state.entries["init_B3_qpl_entry"].insert(0,parvals_ld["B3_qpl"])
-            state.entries["init_A4_qpl_entry"].delete(0, tk.END)
-            state.entries["init_A4_qpl_entry"].insert(0,parvals_ld["A4_qpl"])
-            state.entries["init_B4_qpl_entry"].delete(0, tk.END)
-            state.entries["init_B4_qpl_entry"].insert(0,parvals_ld["B4_qpl"])
-            state.entries["init_x0_qpl_entry"].delete(0, tk.END)
-            state.entries["init_x0_qpl_entry"].insert(0,parvals_ld["x0_qpl"])
-            state.entries["init_dx_qpl_entry"].delete(0, tk.END)
-            state.entries["init_dx_qpl_entry"].insert(0,parvals_ld["dx_qpl"])
-        
-            
-        if state.header[159]=='1':# ie if the quint pl is present in the save, add the function with the saved param values
-            
-            add_quint_pl()
+        if state.header[56] == '1':  # single power law
+           add_power()
+           for name in ["A_sing", "B_sing", "x0_sing", "dx_sing"]:
+               load_param(name, parvals_ld[name])
     
-            state.entries["init_x1_5pl_entry"].delete(0, tk.END)
-            state.entries["init_x1_5pl_entry"].insert(0,parvals_ld["x1_5pl"])
-            state.entries["init_x2_5pl_entry"].delete(0, tk.END)
-            state.entries["init_x2_5pl_entry"].insert(0,parvals_ld["x2_5pl"])
-            state.entries["init_x3_5pl_entry"].delete(0, tk.END)
-            state.entries["init_x3_5pl_entry"].insert(0,parvals_ld["x3_5pl"])
-            state.entries["init_x4_5pl_entry"].delete(0, tk.END)
-            state.entries["init_x4_5pl_entry"].insert(0,parvals_ld["x4_5pl"])
-            state.entries["init_A_5pl_entry"].delete(0, tk.END)
-            state.entries["init_A_5pl_entry"].insert(0,parvals_ld["A_5pl"])
-            state.entries["init_B_5pl_entry"].delete(0, tk.END)
-            state.entries["init_B_5pl_entry"].insert(0,parvals_ld["B_5pl"])
-            state.entries["init_A2_5pl_entry"].delete(0, tk.END)
-            state.entries["init_A2_5pl_entry"].insert(0,parvals_ld["A2_5pl"])
-            state.entries["init_B2_5pl_entry"].delete(0, tk.END)
-            state.entries["init_B2_5pl_entry"].insert(0,parvals_ld["B2_5pl"])
-            state.entries["init_A3_5pl_entry"].delete(0, tk.END)
-            state.entries["init_A3_5pl_entry"].insert(0,parvals_ld["A3_5pl"])
-            state.entries["init_B3_5pl_entry"].delete(0, tk.END)
-            state.entries["init_B3_5pl_entry"].insert(0,parvals_ld["B3_5pl"])
-            state.entries["init_A4_5pl_entry"].delete(0, tk.END)
-            state.entries["init_A4_5pl_entry"].insert(0,parvals_ld["A4_5pl"])
-            state.entries["init_B4_5pl_entry"].delete(0, tk.END)
-            state.entries["init_B4_5pl_entry"].insert(0,parvals_ld["B4_5pl"])
-            state.entries["init_A5_5pl_entry"].delete(0, tk.END)
-            state.entries["init_A5_5pl_entry"].insert(0,parvals_ld["A5_5pl"])
-            state.entries["init_B5_5pl_entry"].delete(0, tk.END)
-            state.entries["init_B5_5pl_entry"].insert(0,parvals_ld["B5_5pl"])  
-            state.entries["init_x0_5pl_entry"].delete(0, tk.END)
-            state.entries["init_x0_5pl_entry"].insert(0,parvals_ld["x0_5pl"])
-            state.entries["init_dx_5pl_entry"].delete(0, tk.END)
-            state.entries["init_dx_5pl_entry"].insert(0,parvals_ld["dx_5pl"])
+        if state.header[70] == '1':  # kappa
+           add_kappa()
+           for name in ["A_k", "T_k", "m_i", "n_i", "kappa"]:
+               load_param(name, parvals_ld[name])
+    
+        if state.header[92] == '1':  # combined bpl + thermal
+           add_bpl_and_therm()
+           for name in ["amp_c", "T_c", "alpha_c", "x0_c", "x1_c", "B_c", "B2_c"]:
+               load_param(name, parvals_ld[name])
+    
+        if state.header[118] == '1':  # double thermal
+           add_double_therm()
+           for name in ["amp_d_1", "T_d_1", "alpha_d_1", "amp_d_2", "T_d_2", "alpha_d_2"]:
+               load_param(name, parvals_ld[name])
+    
+        if state.header[130] == '1':  # triple power law
+           add_tpl()
+           for name in ["x1_tpl", "x2_tpl", "B_tpl", "B2_tpl", "B3_tpl",
+                        "A_tpl", "A2_tpl", "A3_tpl", "x0_tpl", "dx_tpl"]:
+               load_param(name, parvals_ld[name])
+    
+        if state.header[142] == '1':  # quad power law
+           add_qpl()
+           for name in ["x1_qpl", "x2_qpl", "x3_qpl", "B_qpl", "B2_qpl", "B3_qpl", "B4_qpl",
+                        "A_qpl", "A2_qpl", "A3_qpl", "A4_qpl", "x0_qpl", "dx_qpl"]:
+               load_param(name, parvals_ld[name])
+    
+        if state.header[159] == '1':  # quintuple power law
+           add_quint_pl()
+           for name in ["x1_5pl", "x2_5pl", "x3_5pl", "x4_5pl",
+                        "B_5pl", "B2_5pl", "B3_5pl", "B4_5pl", "B5_5pl",
+                        "A_5pl", "A2_5pl", "A3_5pl", "A4_5pl", "A5_5pl",
+                        "x0_5pl", "dx_5pl"]:
+               load_param(name, parvals_ld[name])
                    
     def fit_sum_hndl():
         try:

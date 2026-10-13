@@ -12,7 +12,7 @@ import numpy as np #general mathematical operations
 from scipy.special import erf #imports an erf function for use in some of the fitting operations
 from matplotlib import pyplot as plt #general plotting operations
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg)#allows plotting to a tkinter window
-
+from scipy.stats.qmc import LatinHypercube
 import datetime as dt#handles general datetime operations
 import pandas as pd #module for dataframe and time series handling
 import scipy #for reading in idl saves and other various functions
@@ -24,7 +24,7 @@ from tqdm import tqdm #for tracking progress of long iterables
 import math
 import numdifftools
 import random#needed for random numbers
-
+from scipy.optimize import differential_evolution
 import threading  #required to allow gui updates during code
 from . import state  #shared cross-module state
 #%%functions for fitting
@@ -201,8 +201,72 @@ def neg_max_like(pars,x_data,y_data,uncert,header):#the negative maximum log lik
 
     state.resids=(np.array(calcd_vals)-np.array(y_data))/(np.array(uncert)) #calculates the residuals
     n=len(x_data)
-    nll = 0.5 * (n * np.log(2*np.pi) + np.sum(np.log(uncert**2)) + np.sum(resids**2))
+    nll = 0.5 * (n * np.log(2*np.pi) + np.sum(np.log(uncert**2)) + np.sum(state.resids**2))
     return nll
+
+
+def build_seeded_population(params, free_names, popsize, seed, guess_vec):#seeding populations from initial guess for use with DE
+    n_free = len(free_names)
+    pop_size_total = popsize * n_free
+    sampler = LatinHypercube(d=n_free, seed=seed)
+    unit_samples = sampler.random(n=pop_size_total)
+
+    scaled_pop = np.zeros((pop_size_total, n_free))
+    for i, name in enumerate(free_names):
+        lo, hi = params[name].min, params[name].max
+        # treat a lower bound of 0 (or anything <=0) as "12 orders below hi"
+        floor = hi * 1e-12 if hi > 0 else lo
+        floor = max(lo, floor)
+        span_orders = (hi / floor) if floor > 0 else 1
+
+        if lo >= 0 and floor > 0 and span_orders > 100:
+            # wide, non-negative range -> sample log-uniformly
+            log_lo, log_hi = np.log10(floor), np.log10(hi)
+            scaled_pop[:, i] = 10 ** (log_lo + unit_samples[:, i] * (log_hi - log_lo))
+        else:
+            # narrow range, or genuinely spans negative values (e.g. spectral index) -> linear
+            scaled_pop[:, i] = lo + unit_samples[:, i] * (hi - lo)
+
+    scaled_pop[0] = guess_vec  # guarantee the known-good point is present
+    return scaled_pop
+
+
+#chi sq reporter for bug testing
+def report_chisq(label, params_obj, x, y, uncert, header):
+    resid = np.array(resid_calc(params_obj, x, y, uncert, header))
+    chisq = np.sum(resid**2)
+    print(f"[{label}] chisq = {chisq:.6g}")
+    return chisq
+
+#lmfit breaks differential evolution. so use scipy instead
+#these functions set up for use later
+def de_penalty(x, free_names, params, x_data, y_data, uncert, header):
+    """Objective for scipy's differential_evolution directly, bypassing
+    lmfit's DE wrapper (which silently mishandles a supplied `init` array)."""
+    trial_params = lmfit.Parameters()
+    for name, par in params.items():
+        trial_params.add(name, value=par.value, vary=par.vary,
+                          min=par.min, max=par.max, expr=par.expr)
+    for name, val in zip(free_names, x):
+        trial_params[name].value = val
+
+    resid = np.array(resid_calc(trial_params, x_data, y_data, uncert, header))
+    return np.sum(resid**2)
+
+
+def params_from_vector(params, free_names, vec):
+    """Rebuild a full lmfit Parameters object (preserving min/max/expr for
+    every parameter) from a raw free-parameter vector, e.g. de_result.x."""
+    new_params = lmfit.Parameters()
+    for name, par in params.items():
+        new_params.add(name, value=par.value, vary=par.vary,
+                        min=par.min, max=par.max, expr=par.expr)
+    for name, val in zip(free_names, vec):
+        new_params[name].value = val
+    return new_params
+
+
+
 
 
 def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,spec_type): #defines our fitting process
@@ -502,43 +566,71 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     pb.pack(pady=20)
     #breakpoint()
     def run_fit():
-        best_result = None
+        best_params = None
         lowest_chisq = float("inf")
-        n_seeds = 10
-
+        n_seeds = 3
+    
+        free_names = [name for name, p in params.items() if p.vary]#pull names of free params
+        n_free = len(free_names)#total no. free params
+        bounds = [(params[name].min, params[name].max) for name in free_names]#param bounds
+        guess_vec = np.array([params[name].value for name in free_names])#initial guess
+    
+        popsize = 20
+        desired_generations = 750
+        report_chisq("initial guess", params, x_data_sliced, y_data_sliced, uncert_sliced, header)
         for seed in range(n_seeds):
             try:
                 np.random.seed(seed)
                 random.seed(seed)
-                trial = fitter.minimize(
-                    method='basinhopping',
-                    stepsize=0.00001,
+    
+                scaled_pop = build_seeded_population(params, free_names, popsize, seed, guess_vec)
+    
+                de_result = differential_evolution(
+                    de_penalty,
+                    bounds,
+                    args=(free_names, params, x_data_sliced, y_data_sliced, uncert_sliced, header),
+                    strategy='best2bin',
+                    maxiter=desired_generations,
+                    popsize=popsize,
+                    init=scaled_pop,
+                    tol=1e-8,
+                    mutation=(0.5, 1.5),
+                    recombination=0.7,
                     seed=seed,
-                    minimizer_kwargs={'method': 'TNC', 'options': {'ftol': 1e-9, 'gtol': 1e-9, 'eps': 1e-7}}
+                    polish=False,
+                    updating='immediate',
                 )
-                if trial.chisqr < lowest_chisq:
-                    best_result = trial
-                    lowest_chisq = trial.chisqr
+
+                if de_result.fun < lowest_chisq:
+                    lowest_chisq = de_result.fun
+                    best_params = params_from_vector(params, free_names, de_result.x)
+                trial=params_from_vector(params, free_names, de_result.x)
+                report_chisq(f"DE seed {seed}", trial, x_data_sliced, y_data_sliced, uncert_sliced, header)
             except Exception as e:
                 print(f"Seed {seed} failed: {e}")
                 #breakpoint()
             pb['value'] += 100 / n_seeds
             pb.update_idletasks()
 
-        if best_result is not None:
-            params.update(best_result.params)
+        if best_params is not None:
+            params.update(best_params)
             state.fitter_local = lmfit.Minimizer(
                 resid_calc,
                 params,
                 fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
                 scale_covar=True)
-            
-            state.result = state.fitter_local.minimize(
-                    method='least_squares',
+            try:
+                state.result = state.fitter_local.minimize(
+                    method='nelder',
                     max_nfev=50000,
-                    x_scale='jac',
-                    ftol=1e-9, xtol=1e-9, gtol=1e-9)
-            
+                    #x_scale='jac',
+                    #ftol=1e-9, xtol=1e-9, gtol=1e-9
+                    )
+                report_chisq("post Nelder-Mead", state.result.params, x_data_sliced, y_data_sliced, uncert_sliced, header)
+                #nelder is the most resilient to nans for final stage
+            except Exception as e:
+                    print(f"Local failed: {e}")
+                    #breakpoint()
         progress_win.destroy()  # Closes the window, allows wait_window to continue
         
 
@@ -668,7 +760,7 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
     #calc reduced chi sq
     dof=len(y_data_sliced)-len(state.parvals)#degrees of freedom
     state.redchi=chi_sq/dof
-
+    
 
     #breakpoint()
     #return the parameter uncertainties as well
@@ -679,9 +771,19 @@ def fitting(header,init,vary,minval,maxval,x_data,y_data,uncert,fitmin,fitmax,sp
 
     else:#if fitter has not generated uncerts, use bayesian posterior method
         print('bayes uncerts use')
-        posterior = state.fitter_local.minimize( method='emcee',  burn=300, steps=5000, thin=20,
-                              is_weighted=True)
-        
+        state.fitter_local = lmfit.Minimizer(
+            resid_calc,
+            params,
+            fcn_kws={'x_data': x_data_sliced, 'y_data': y_data_sliced, 'uncert': uncert_sliced, 'header': header},
+            scale_covar=True,nan_policy='omit')
+        try:#try-except wrap in case emcee makes inf/nan
+            posterior = state.fitter_local.minimize( method='emcee',params= state.result.params, burn=300, steps=5000, thin=20,
+                              is_weighted=True,progress=True)
+        except Exception as e:
+            print(f"Bayes uncert failed: {e}")
+            #breakpoint()
+                    
+                    
         #locate MLE value in the chain to get sigmas-not neccessary for operations
         highest_prob = np.argmax(posterior.lnprob)
         hp_loc = np.unravel_index(highest_prob, posterior.lnprob.shape)

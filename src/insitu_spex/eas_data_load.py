@@ -33,7 +33,26 @@ from tqdm import tqdm
 import sys
 from spacepy import pycdf
 
+#%%fill value filter function
 
+def load_masked(cdfs, name):
+    """Concatenate a CDF variable across files, replacing only FILLVAL entries with NaN (zeros are kept)."""
+    out = []
+    n_fill = 0
+    for c in cdfs:
+        var = c[name]
+        data = var[...]
+        fill_hits = np.zeros(data.shape, dtype=bool)
+        if 'FILLVAL' in var.attrs:
+            fill_hits = data == np.asarray(var.attrs['FILLVAL'], dtype=data.dtype)
+        data = data.astype(float)
+        data[fill_hits] = np.nan
+        n_fill += fill_hits.sum()
+        out.append(data)
+    out = np.concatenate(out)
+    print(f'{name}: {n_fill} fill values masked of {out.size}')
+    return out
+#%%main EAS load
 def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
     tstart_set=tstart
@@ -72,12 +91,6 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
     flux_files = [pycdf.CDF(str(i)) for i in EAS1_files]
 
-    
-    
-    
-    
-    
-    
     #%%load eas count data
 
     
@@ -224,7 +237,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     #eas2 does not opverlap so not included   
     #breakpoint()
     #eas1
-    combo_files=np.concatenate([i['SWA_EAS1_Data'] for i in files])#combine all files into a single time series
+    combo_files = load_masked(files, 'SWA_EAS1_Data')#combine all files into a single time series
     
     # Deduplicate time array and apply the same to combo_files, as the loaded data can contain duplicates
     times = np.concatenate([i['EPOCH'][:] for i in files])
@@ -234,8 +247,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
     #use the times from flux as these seem better
     times_flux = np.concatenate([i['EPOCH'][:] for i in flux_files])
-    
-    flux_files=np.concatenate([i['SWA_EAS1_NM3D_DNF_Data'] for i in flux_files])#combine all files into a single time series
+    flux_files = load_masked(flux_files, 'SWA_EAS1_NM3D_DNF_Data')#combine all files into a single time series
     
     #breakpoint()
         # --- ALIGN TIMES --- in case there are bins not present in both

@@ -33,7 +33,26 @@ from tqdm import tqdm
 import sys
 from spacepy import pycdf
 
+#%%fill value filter function
 
+def load_masked(cdfs, name):
+    """Concatenate a CDF variable across files, replacing only FILLVAL entries with NaN (zeros are kept)."""
+    out = []
+    n_fill = 0
+    for c in cdfs:
+        var = c[name]
+        data = var[...]
+        fill_hits = np.zeros(data.shape, dtype=bool)
+        if 'FILLVAL' in var.attrs:
+            fill_hits = data == np.asarray(var.attrs['FILLVAL'], dtype=data.dtype)
+        data = data.astype(float)
+        data[fill_hits] = np.nan
+        n_fill += fill_hits.sum()
+        out.append(data)
+    out = np.concatenate(out)
+    print(f'{name}: {n_fill} fill values masked of {out.size}')
+    return out
+#%%main EAS load
 def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
     tstart_set=tstart
@@ -72,12 +91,6 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
     flux_files = [pycdf.CDF(str(i)) for i in EAS1_files]
 
-    
-    
-    
-    
-    
-    
     #%%load eas count data
 
     
@@ -200,31 +213,31 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     plt.show()
     '''
 
-    #convert the xyz back to angles to allow easier filtering
-    Els=np.arcsin((EAS1_Xs+EAS1_Ys)/(-2*np.cos(45.*rad)))
+    # convert the xyz back to angles (degrees, to match elevs_raw / azs_raw)
+    c45 = np.cos(45.*rad)
+    Els = np.degrees(np.arcsin(-(EAS1_Xs + EAS1_Ys) / (2*c45)))
+    Azs = np.degrees(np.arctan2((EAS1_Ys - EAS1_Xs) / (2*c45), -EAS1_Zs)) % 360
     
-    Azs=np.arccos(EAS1_Zs/(-np.cos(Els)))
+    # each look direction appears once per energy in the meshgrid, so de-duplicate the (el, az) PAIRS
+    pairs = np.unique(np.round(np.column_stack((Els, Azs)), 5), axis=0)
+    
+    # angles -> indices via nearest bin (robust to float round-off; azimuth difference wraps at 360)
+    el_idx = np.abs(pairs[:, 0, None] - elevs_raw[None, :]).argmin(axis=1)
+    az_diff = (pairs[:, 1, None] - azs_raw[None, :] + 180) % 360 - 180
+    az_idx = np.abs(az_diff).argmin(axis=1)
     
     
-    Azs=np.unique(np.round(Azs,5))
-    Els=np.unique(np.round(Els,5))
-    
-    eas_el_r=np.round(elevs_raw*rad,5)
-    eas_az_r=np.round(azs_raw*rad,5)
-    
-
     #breakpoint()
-    el_idx = np.flatnonzero(np.isin(eas_el_r, Els))
-    el_sl = slice(el_idx.min(), el_idx.max() + 1)
-    az_sl = slice(np.searchsorted(eas_az_r, Azs.min(), side="left"),
-                  np.searchsorted(eas_az_r, Azs.max(), side="right"))
+    print('Selected EAS (el, az) pixels:')
+    for e, a_ in zip(el_idx, az_idx):
+        print(f'  el[{e}] = {elevs_raw[e]:6.1f}°, az[{a_}] = {azs_raw[a_]:6.1f}°')
     #%% remove all the unwanted bits
     # Define the range of desired elevations and azimuths (e.g., min and max)
     
     #eas2 does not opverlap so not included   
     #breakpoint()
     #eas1
-    combo_files=np.concatenate([i['SWA_EAS1_Data'] for i in files])#combine all files into a single time series
+    combo_files = load_masked(files, 'SWA_EAS1_Data')#combine all files into a single time series
     
     # Deduplicate time array and apply the same to combo_files, as the loaded data can contain duplicates
     times = np.concatenate([i['EPOCH'][:] for i in files])
@@ -234,8 +247,7 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
 
     #use the times from flux as these seem better
     times_flux = np.concatenate([i['EPOCH'][:] for i in flux_files])
-    
-    flux_files=np.concatenate([i['SWA_EAS1_NM3D_DNF_Data'] for i in flux_files])#combine all files into a single time series
+    flux_files = load_masked(flux_files, 'SWA_EAS1_NM3D_DNF_Data')#combine all files into a single time series
     
     #breakpoint()
         # --- ALIGN TIMES --- in case there are bins not present in both
@@ -263,8 +275,8 @@ def EAS_data_load(date_for_spec,tstart,tend,epd_xyz_sectors,low_e_cutoff=0.8):
     #print((flux_files2==0).any())    
 
     #breakpoint()
-    count_curve_raw=np.nanmean(combo_files[:,el_sl,az_sl,:], axis=(1,2))
-    flux_curve_raw=np.nanmean(flux_files[:,el_sl,az_sl,:], axis=(1,2))
+    count_curve_raw=np.nanmean(combo_files[:,el_idx,az_idx,:], axis=1)
+    flux_curve_raw=np.nanmean(flux_files[:,el_idx,az_idx,:], axis=1)
     
     
     #print(count_curve_raw.shape)
